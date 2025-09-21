@@ -22,6 +22,34 @@
         <div class="row">
           <section class="card">
             <h2>Add Harvest</h2>
+            <form
+              id="harvestForm"
+              autocomplete="off"
+              style="margin-bottom: 1em"
+            >
+              <select id="harvestBerry"></select>
+              <input id="harvestDate" type="date" />
+              <input
+                id="harvestWeight"
+                type="number"
+                min="0"
+                step="1"
+                placeholder="Weight (g)"
+              />
+              <button id="btnAddHarvest" type="button">Add harvest</button>
+            </form>
+            <table id="harvestTable" aria-label="Harvest entries">
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Berry</th>
+                  <th class="right">Total (kg)</th>
+                  <th class="right">Frozen (kg)</th>
+                  <th class="right">Fresh (kg)</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
           </section>
           <section class="card">
             <h2>Package Builder</h2>
