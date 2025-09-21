@@ -1,0 +1,133 @@
+/* Header and pill utilities */
+.header-flex {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--gap);
+}
+
+.pill {
+  background: var(--surface);
+  color: var(--accent);
+  border-radius: var(--round);
+  padding: 0.5em 1em;
+  font-weight: 500;
+  font-size: 1rem;
+}
+/* Theme tokens */
+:root {
+  --bg: #181a20;
+  --surface: #23262f;
+  --card: #22242c;
+  --text: #f5f6fa;
+  --muted: #a0a4b8;
+  --accent: #6ee7b7;
+  --accent-2: #38bdf8;
+  --warn: #facc15;
+  --red: #ef4444;
+  --radius: 12px;
+  --pad: 1rem;
+  --pad-lg: 2rem;
+  --gap: 1.5rem;
+  --shadow: 0 2px 16px 0 rgba(0, 0, 0, 0.12);
+  --focus-ring: 0 0 0 2px var(--accent);
+  --mono: "JetBrains Mono", "Fira Mono", "Menlo", monospace;
+  --round: 999px;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: system-ui, sans-serif;
+  min-height: 100vh;
+}
+
+.wrap {
+  max-width: 980px;
+  margin: 0 auto;
+  padding: var(--pad-lg);
+}
+
+.row {
+  display: flex;
+  gap: var(--gap);
+  flex-wrap: wrap;
+}
+
+.card {
+  background: var(--card);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: var(--pad-lg);
+  flex: 1 1 0;
+  min-width: 220px;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: var(--gap);
+}
+.g-12 {
+  grid-column: span 12;
+}
+.g-6 {
+  grid-column: span 6;
+}
+.g-4 {
+  grid-column: span 4;
+}
+.g-3 {
+  grid-column: span 3;
+}
+
+@media (max-width: 700px) {
+  .row {
+    flex-direction: column;
+    display: flex;
+  }
+  .grid {
+    grid-template-columns: 1fr !important;
+  }
+  .card,
+  .g-12,
+  .g-6,
+  .g-4,
+  .g-3 {
+    width: 100%;
+    min-width: 0;
+    margin-bottom: var(--gap);
+  }
+}
+
+/* Print styles */
+@media print {
+  html,
+  body {
+    background: #fff !important;
+    color: #000 !important;
+  }
+  .card,
+  .wrap,
+  .row {
+    box-shadow: none !important;
+    background: #fff !important;
+    color: #000 !important;
+    border-radius: 0 !important;
+  }
+  .card,
+  .wrap,
+  .row,
+  header,
+  h1,
+  h2 {
+    color: #000 !important;
+  }
+  .controls,
+  .no-print {
+    display: none !important;
+  }
+}
