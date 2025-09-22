@@ -38,6 +38,7 @@ function computeStorageByBerry() {
       berryId: b.id,
       frozenKg: 0,
       freshKg: 0,
+      valuePYG: 0,
       lastDate: null,
       daysSince: null,
     };
@@ -57,11 +58,30 @@ function computeStorageByBerry() {
     else m.freshKg = Math.max(0, m.freshKg - kg);
   });
   const today = new Date().toISOString().slice(0, 10);
+  // Local date (YYYY-MM-DD) to avoid timezone off-by-one
+  function todayLocalISO() {
+    const d = new Date();
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, "0");
+    const day = String(d.getDate()).padStart(2, "0");
+    return `${y}-${m}-${day}`;
+  }
+  // Parse YYYY-MM-DD to a local Date at midnight
+  function isoToLocalDate(iso) {
+    if (!iso || typeof iso !== "string") return new Date();
+    const [y, m, d] = iso.split("-").map((x) => parseInt(x, 10));
+    return new Date(y, (m || 1) - 1, d || 1);
+  }
   Object.values(map).forEach((m) => {
+    // compute value using current PYG/kg prices
+    const pFro = pricePYG(m.berryId, "frozen");
+    const pFre = pricePYG(m.berryId, "fresh");
+    m.valuePYG = Math.max(0, Math.round(m.frozenKg * pFro + m.freshKg * pFre));
     if (m.lastDate) {
-      const d1 = new Date(m.lastDate + "T00:00:00Z");
-      const d2 = new Date(today + "T00:00:00Z");
-      m.daysSince = Math.floor((d2 - d1) / (1000 * 60 * 60 * 24));
+      const d1 = isoToLocalDate(m.lastDate);
+      const d2 = isoToLocalDate(today);
+      const diff = Math.floor((d2 - d1) / (1000 * 60 * 60 * 24));
+      m.daysSince = Math.max(0, diff);
     } else m.daysSince = "—";
   });
   return map;
@@ -72,23 +92,41 @@ function renderStorage() {
   if (!tb) return;
   tb.innerHTML = "";
   const map = computeStorageByBerry();
+
+  let sumFrozen = 0,
+    sumFresh = 0,
+    sumValue = 0;
+
   (BERRIES || []).forEach((b) => {
     const m = map[b.id];
+    sumFrozen += m.frozenKg;
+    sumFresh += m.freshKg;
+    sumValue += m.valuePYG;
+
     const tr = document.createElement("tr");
     tr.innerHTML = `
       <td>${b.name}</td>
       <td class="right">${m.frozenKg.toFixed(2)}</td>
       <td class="right">${m.freshKg.toFixed(2)}</td>
+      <td class="right">${typeof toShortPYG === "function" ? toShortPYG(m.valuePYG) : m.valuePYG.toLocaleString()}</td>
       <td class="right">${m.daysSince}</td>`;
     tb.appendChild(tr);
   });
-  // update header pills if present
-  const totalFresh = Object.values(map).reduce((s, m) => s + m.freshKg, 0);
-  const totalFrozen = Object.values(map).reduce((s, m) => s + m.frozenKg, 0);
+
+  // Update footer totals if present
+  const tfF = document.getElementById("totFrozenKg");
+  const tfR = document.getElementById("totFreshKg");
+  const tfV = document.getElementById("totValuePYG");
+  if (tfF) tfF.textContent = sumFrozen.toFixed(2);
+  if (tfR) tfR.textContent = sumFresh.toFixed(2);
+  if (tfV)
+    tfV.textContent = typeof toShortPYG === "function" ? toShortPYG(sumValue) : sumValue.toLocaleString();
+
+  // update header pills if present (by kg)
   const f = document.getElementById("pillFresh");
-  if (f) f.textContent = `Fresh stock: ${totalFresh.toFixed(2)} kg`;
+  if (f) f.textContent = `Fresh stock: ${sumFresh.toFixed(2)} kg`;
   const z = document.getElementById("pillFrozen");
-  if (z) z.textContent = `Frozen stock: ${totalFrozen.toFixed(2)} kg`;
+  if (z) z.textContent = `Frozen stock: ${sumFrozen.toFixed(2)} kg`;
 }
 
 function renderRecentActions() {
@@ -114,7 +152,7 @@ function renderRecentActions() {
 }
 // Apply bulk action
 async function onDoBulkAction() {
-  const dateISO = new Date().toISOString().slice(0, 10);
+  const dateISO = todayLocalISO();
   const berryId = document.getElementById("actBerry").value;
   const amount_g = Number(document.getElementById("actWeight").value || 0);
   if (!berryId || amount_g <= 0) {
@@ -149,6 +187,152 @@ const BERRIES = [
 ];
 const berryName = (id) => BERRIES.find((b) => b.id === id)?.name || id;
 
+// Local date (YYYY-MM-DD) to avoid timezone off-by-one
+function todayLocalISO() {
+  const d = new Date();
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+}
+
+// ---- Prices helpers (PYG) ----
+function roundToStep(n, step = 5000) {
+  return Math.round(n / step) * step;
+}
+function toShortPYG(n) {
+  if (!Number.isFinite(n)) return "";
+  const abs = Math.abs(n);
+  if (abs >= 1000000) {
+    const m = n / 1000000;
+    const shown = abs < 10000000 ? Math.round(m * 10) / 10 : Math.round(m);
+    return String(shown) + "m";
+  }
+  if (abs >= 10000) return Math.round(n / 1000).toString() + "k";
+  return String(n | 0);
+}
+function parsePYG(input) {
+  if (input == null) return 0;
+  let s = String(input).trim().toLowerCase();
+  const isK = s.endsWith("k");
+  const isM = s.endsWith("m");
+  if (isK || isM) {
+    s = s.slice(0, -1);
+    // keep one decimal separator for k-notation; drop currency and spaces
+    s = s.replace(/[^0-9.,]/g, "");
+    // unify decimal comma to dot
+    s = s.replace(/,/g, ".");
+    let valf = parseFloat(s);
+    if (!Number.isFinite(valf)) return 0;
+    let val = valf * (isM ? 1000000 : 1000);
+    return roundToStep(val, 5000);
+  }
+  // Non-k input: treat separators as thousands; drop non-digits
+  s = s.replace(/[^0-9]/g, "");
+  let val = Number(s);
+  if (!Number.isFinite(val)) return 0;
+  return roundToStep(val, 5000);
+}
+
+// Read price in PYG per kg for a berry
+function pricePYG(berryId, which) {
+  const p = prices?.[berryId];
+  return which === "fresh"
+    ? p?.fresh_PYGkg || 0
+    : which === "frozen"
+    ? p?.frozen_PYGkg || 0
+    : 0;
+}
+
+// Prices persistence
+K.prices = "berry.v1.prices";
+let prices = load(K.prices, null);
+if (!prices) {
+  prices = {};
+  (BERRIES || []).forEach((b) => {
+    prices[b.id] = { fresh_eurkg: 0, frozen_eurkg: 0 };
+  });
+  save(K.prices, prices);
+}
+
+function renderPrices() {
+  const tb = document.querySelector("#pricesTable tbody");
+  if (!tb) return;
+  tb.innerHTML = "";
+  let normalized = false;
+  (BERRIES || []).forEach((b) => {
+    const row = document.createElement("tr");
+    const prev = prices[b.id] || {};
+    const pFresh =
+      typeof prev.fresh_PYGkg === "number"
+        ? prev.fresh_PYGkg
+        : typeof prev.fresh_eurkg === "number"
+        ? prev.fresh_eurkg
+        : 0;
+    const pFrozen =
+      typeof prev.frozen_PYGkg === "number"
+        ? prev.frozen_PYGkg
+        : typeof prev.frozen_eurkg === "number"
+        ? prev.frozen_eurkg
+        : 0;
+    // normalize keys to PYG
+    const norm = {
+      fresh_PYGkg: Number.isFinite(pFresh) ? roundToStep(pFresh, 5000) : 0,
+      frozen_PYGkg: Number.isFinite(pFrozen) ? roundToStep(pFrozen, 5000) : 0,
+    };
+    if (
+      !prev ||
+      prev.fresh_PYGkg !== norm.fresh_PYGkg ||
+      prev.frozen_PYGkg !== norm.frozen_PYGkg ||
+      "fresh_eurkg" in prev ||
+      "frozen_eurkg" in prev
+    ) {
+      normalized = true;
+    }
+    prices[b.id] = norm;
+    row.innerHTML = `
+      <td>${b.name}</td>
+      <td class="right">
+        <input type="text" inputmode="numeric" data-price="${
+          b.id
+        }|fresh" value="${toShortPYG(prices[b.id].fresh_PYGkg)}">
+      </td>
+      <td class="right">
+        <input type="text" inputmode="numeric" data-price="${
+          b.id
+        }|frozen" value="${toShortPYG(prices[b.id].frozen_PYGkg)}">
+      </td>`;
+    tb.appendChild(row);
+  });
+  if (normalized) save(K.prices, prices);
+
+  // Save on blur (use capture to catch blur)
+  tb.addEventListener(
+    "blur",
+    (e) => {
+      const t = e.target;
+      if (!t.matches("input[data-price]")) return;
+      const [berryId, which] = t.dataset.price.split("|");
+      const parsed = parsePYG(t.value);
+      if (!prices[berryId])
+        prices[berryId] = { fresh_PYGkg: 0, frozen_PYGkg: 0 };
+      if (which === "fresh") prices[berryId].fresh_PYGkg = parsed;
+      if (which === "frozen") prices[berryId].frozen_PYGkg = parsed;
+      save(K.prices, prices);
+      // reflect rounding + short form
+      t.value = toShortPYG(parsed);
+      document.dispatchEvent(
+        new CustomEvent("metrics:updated", { detail: { source: "prices" } })
+      );
+    },
+    true
+  );
+  // Enter commits
+  tb.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") e.target.blur();
+  });
+}
+
 // Format YYYY-MM-DD to DD-MM-’YY (European short with right single quote before year)
 function formatDateEU(dateISO) {
   if (!dateISO || typeof dateISO !== "string") return dateISO || "";
@@ -172,7 +356,9 @@ function initHarvestUI() {
   }
   const d = $("#harvestDate");
   if (d) {
-    d.value = new Date().toISOString().slice(0, 10);
+    const t = todayLocalISO();
+    d.value = t;
+    d.max = t; // prevent choosing a future date
   }
 }
 
@@ -199,8 +385,13 @@ function onAddHarvest() {
   const berryId = document.getElementById("harvestBerry").value;
   const dateISO = document.getElementById("harvestDate").value;
   const weight_g = Number(document.getElementById("harvestWeight").value || 0);
+  const today = todayLocalISO();
   if (!berryId || !dateISO || weight_g <= 0) {
     alert("Fill date, berry, and a positive weight");
+    return;
+  }
+  if (dateISO > today) {
+    alert("Date cannot be in the future");
     return;
   }
   const product =
@@ -289,6 +480,7 @@ initProductToggle();
 initStorageUI();
 renderStorage();
 renderRecentActions();
+renderPrices();
 document.getElementById("btnAddHarvest")?.addEventListener("click", () => {
   onAddHarvest();
   renderStorage();

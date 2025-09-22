@@ -392,3 +392,7 @@ h2 {
     margin: 8px 0;
   }
 }
+
+/* Totals row styling */
+.total-row th { font-weight: 600; }
+.total-row th, .total-row td { border-top: 1px solid rgba(255, 255, 255, 0.08); }

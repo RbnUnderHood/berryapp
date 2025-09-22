@@ -110,10 +110,20 @@
                   <th>Berry</th>
                   <th class="right">Frozen (kg)</th>
                   <th class="right">Fresh (kg)</th>
+                  <th class="right">Value (PYG)</th>
                   <th class="right">Days since last</th>
                 </tr>
               </thead>
               <tbody></tbody>
+              <tfoot>
+                <tr class="total-row">
+                  <th>Total</th>
+                  <th class="right" id="totFrozenKg">0.00</th>
+                  <th class="right" id="totFreshKg">0.00</th>
+                  <th class="right" id="totValuePYG">0</th>
+                  <th></th>
+                </tr>
+              </tfoot>
             </table>
           </div>
           <!-- Bulk actions: remove/sell -->
@@ -213,7 +223,29 @@
           </div>
         </section>
 
-        <section class="card" id="card-prices"><h2>Prices</h2></section>
+        <section class="card" id="card-prices" aria-labelledby="h2-prices">
+          <h2 id="h2-prices">Prices</h2>
+          <p class="muted">
+            Set current PYG/kg for bulk products. You can type “k” shorthand
+            (e.g., 80k). Values round to nearest 5,000.
+          </p>
+          <div class="table-scroll-10">
+            <table
+              class="table-compact"
+              id="pricesTable"
+              aria-label="Prices per berry"
+            >
+              <thead>
+                <tr>
+                  <th>Berry</th>
+                  <th class="right">Fresh PYG/kg</th>
+                  <th class="right">Frozen PYG/kg</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </section>
       </div>
     </div>
   </body>
