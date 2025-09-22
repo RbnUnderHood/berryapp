@@ -92,7 +92,7 @@ function renderStorage() {
 }
 
 function renderRecentActions() {
-  const tb = document.querySelector("#actionsTable tbody");
+  const tb = document.querySelector("#salesTable tbody");
   if (!tb) return;
   tb.innerHTML = "";
   // show most recent first, cap to 10
@@ -104,7 +104,7 @@ function renderRecentActions() {
       const kg = (a.amount_g || 0) / 1000;
       const tr = document.createElement("tr");
       tr.innerHTML = `
-      <td>${a.dateISO}</td>
+      <td>${formatDateEU(a.dateISO)}</td>
       <td>${BERRIES.find((b) => b.id === a.berryId)?.name || a.berryId}</td>
       <td>${a.product}</td>
       <td>${a.action}</td>
@@ -149,14 +149,14 @@ const BERRIES = [
 ];
 const berryName = (id) => BERRIES.find((b) => b.id === id)?.name || id;
 
-// Format YYYY-MM-DD to DD-MM-'YY (European short with leading apostrophe before year)
+// Format YYYY-MM-DD to DD-MM-’YY (European short with right single quote before year)
 function formatDateEU(dateISO) {
   if (!dateISO || typeof dateISO !== "string") return dateISO || "";
   const parts = dateISO.split("-");
   if (parts.length !== 3) return dateISO;
   const [y, m, d] = parts;
   const yy = String(Number(y) % 100).padStart(2, "0");
-  return `${d}-${m}-'${yy}`;
+  return `${d}-${m}-’${yy}`;
 }
 
 function initHarvestUI() {
@@ -297,6 +297,19 @@ document.getElementById("btnAddHarvest")?.addEventListener("click", () => {
 document
   .getElementById("btnExportHarvestCSV")
   ?.addEventListener("click", exportHarvestCSV);
-document
-  .getElementById("btnDoBulkAction")
-  ?.addEventListener("click", onDoBulkAction);
+// Ensure Sales UI is initialized and Apply is wired
+(function initSalesUI() {
+  const sel = document.getElementById("actBerry");
+  if (sel && sel.options.length === 0) {
+    sel.innerHTML = "";
+    (BERRIES || []).forEach((b) => {
+      const o = document.createElement("option");
+      o.value = b.id;
+      o.textContent = b.name;
+      sel.appendChild(o);
+    });
+  }
+  document.getElementById("btnDoBulkAction")?.addEventListener("click", () => {
+    onDoBulkAction();
+  });
+})();

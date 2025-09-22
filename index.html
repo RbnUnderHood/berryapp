@@ -99,13 +99,11 @@
         </section>
         <section class="card" id="card-storage" aria-labelledby="h2-storage">
           <h2 id="h2-storage">Storage</h2>
-
-          <!-- Bulk stock summary -->
-          <div class="table-scroll-10" style="margin-bottom: 8px">
+          <div class="table-scroll-10">
             <table
               class="table-compact"
               id="storageTable"
-              aria-label="Storage by berry (bulk)"
+              aria-label="Storage by berry"
             >
               <thead>
                 <tr>
@@ -118,7 +116,6 @@
               <tbody></tbody>
             </table>
           </div>
-
           <!-- Bulk actions: remove/sell -->
           <div class="subcard" id="bulkActionsBox">
             <h3 style="margin: 6px 0">Bulk actions</h3>
@@ -161,7 +158,7 @@
                   placeholder="e.g. 500"
                 />
               </div>
-              <div class="g-6">
+              <div class="g-3">
                 <label>Action</label>
                 <div
                   class="pillgroup"
@@ -192,11 +189,14 @@
               </button>
             </div>
           </div>
-
+        </section>
+        <section class="card" id="card-sales" aria-labelledby="h2-sales">
+          <h2 id="h2-sales">Sales</h2>
+          <!-- Recent actions table (renamed id) -->
           <div class="table-scroll-10" style="margin-bottom: 8px">
             <table
               class="table-compact"
-              id="actionsTable"
+              id="salesTable"
               aria-label="Recent bulk actions"
             >
               <thead>
@@ -211,14 +211,8 @@
               <tbody></tbody>
             </table>
           </div>
-
-          <!-- Packaged (placeholder for later packaging module) -->
-          <h3 style="margin: 6px 0">Packaged stock (coming later)</h3>
-          <p class="muted">
-            When the package builder returns, packaged stock and sales will
-            appear here.
-          </p>
         </section>
+
         <section class="card" id="card-prices"><h2>Prices</h2></section>
       </div>
     </div>
