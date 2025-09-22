@@ -27,7 +27,102 @@ async function authInit() {
     if (m) m.textContent = error ? error.message : "Check your email.";
   });
 }
+// ---- Supabase sync: fetch + subscribe ----
+async function pullTable(name, orderBy = "created_at") {
+  const { data, error } = await supabase
+    .from(name)
+    .select("*")
+    .order(orderBy, { ascending: true });
+  if (error) {
+    console.warn("pull error", name, error.message);
+    return [];
+  }
+  return data || [];
+}
+
+async function fetchAll() {
+  const [h, a, p, pr] = await Promise.all([
+    pullTable("harvests", "date_iso"),
+    pullTable("bulk_actions", "date_iso"),
+    pullTable("packages", "date_iso"),
+    pullTable("prices", "updated_at"),
+  ]);
+
+  // Replace local caches (your app already uses these)
+  harvests = h.map((r) => ({
+    id: r.id,
+    dateISO: r.date_iso,
+    berryId: r.berry_id,
+    weight_g: r.weight_g,
+    fresh_g: r.fresh_g,
+    frozen_g: r.frozen_g,
+    note: r.note || "",
+  }));
+
+  bulkActions = a.map((r) => ({
+    id: r.id,
+    dateISO: r.date_iso,
+    berryId: r.berry_id,
+    product: r.product,
+    action: r.action,
+    amount_g: r.amount_g,
+    note: r.note || "",
+    price_at_sale_pygkg: r.price_at_sale_pygkg ?? null,
+  }));
+
+  packages = p.map((r) => ({
+    id: r.id,
+    dateISO: r.date_iso,
+    product: r.product,
+    size_g: r.size_g,
+    count: r.count,
+    mix: r.mix || {},
+    cost_pyg_per_pkg: r.cost_pyg_per_pkg,
+  }));
+
+  prices = {};
+  pr.forEach((row) => {
+    prices[row.berry_id] = {
+      fresh_PYGkg: row.fresh_pygkg | 0,
+      frozen_PYGkg: row.frozen_pygkg | 0,
+    };
+  });
+
+  // Persist to localStorage so you stay offline-first
+  save(K.harvests, harvests);
+  save(K.bulkActions, bulkActions);
+  save(K.packages, packages);
+  save(K.prices, prices);
+
+  // Re-render everything (these exist in your app)
+  renderHarvestTable && renderHarvestTable();
+  renderStorage && renderStorage();
+  renderRecentActions && renderRecentActions();
+  renderSales && renderSales();
+  renderPrices && renderPrices();
+  renderMixer && renderMixer();
+  renderAnalytics && renderAnalytics();
+}
+
+function subscribeAll() {
+  const ch = supabase.channel("rt:all");
+  ["harvests", "bulk_actions", "packages", "prices"].forEach((t) => {
+    ch.on(
+      "postgres_changes",
+      { event: "*", schema: "public", table: t },
+      () => {
+        // any change → refetch to keep it simple + consistent
+        fetchAll();
+      }
+    );
+  });
+  ch.subscribe();
+}
+
 authInit();
+
+// Kick off initial sync after auth is initialized
+fetchAll().then(subscribeAll);
 
 // Berry Tally base loaded
 const $ = (s) => document.querySelector(s);
