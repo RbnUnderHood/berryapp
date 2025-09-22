@@ -10,7 +10,37 @@
   <body>
     <div class="wrap">
       <header class="header-flex">
-        <h1 data-i18n="app.title">Berry Tally</h1>
+        <div class="theme-switch" style="margin-right: 8px">
+          <input
+            type="checkbox"
+            id="themeToggle"
+            aria-label="Toggle light mode"
+          />
+          <label for="themeToggle">
+            <span class="moon">🌙</span>
+            <span class="sun">☀️</span>
+          </label>
+        </div>
+        <div style="text-align:center;">
+          <h1>
+            Granja Suiza Berry app
+            <svg
+              aria-label="Switzerland flag"
+              role="img"
+              width="20"
+              height="20"
+              viewBox="0 0 28 28"
+              style="vertical-align: -3px; margin-left: 6px; border-radius: 3px; display: inline-block;"
+            >
+              <rect width="28" height="28" fill="#D52B1E" />
+              <rect x="12" y="5" width="4" height="18" fill="#ffffff" />
+              <rect x="5" y="12" width="18" height="4" fill="#ffffff" />
+            </svg>
+          </h1>
+          <div style="font-size:0.9rem; color: var(--muted); margin-top: 2px;">
+            Niels/Thomas Beerli Cockpit
+          </div>
+        </div>
         <div class="pill-row">
           <span
             class="pill pill--fresh"
@@ -90,6 +120,10 @@
                 placeholder="e.g. 1800"
               />
             </div>
+            <div class="g-3">
+              <label for="harvestPickerPYG" data-i18n="harvest.picker_pyg">Picker salary (PYG)</label>
+              <input id="harvestPickerPYG" type="text" inputmode="numeric" placeholder="e.g. 50k" />
+            </div>
           </div>
 
           <div class="row" style="margin-bottom: 8px">
@@ -113,9 +147,9 @@
                 <tr>
                   <th data-i18n="table.date">Date</th>
                   <th data-i18n="table.berry">Berry</th>
-                  <th class="right" data-i18n="table.total_kg">Total (kg)</th>
                   <th class="right" data-i18n="table.frozen_kg">Frozen (kg)</th>
                   <th class="right" data-i18n="table.fresh_kg">Fresh (kg)</th>
+                  <th class="right" data-i18n="harvest.picker_pyg">Picker salary (PYG)</th>
                 </tr>
               </thead>
               <tbody></tbody>
@@ -133,8 +167,11 @@
             </button>
           </div>
         </section>
+
         <section class="card" id="card-storage" aria-labelledby="h2-storage">
-          <h2 id="h2-storage" data-i18n="storage.title">Storage</h2>
+          <div class="card-head">
+            <h2 id="h2-storage" data-i18n="storage.title">Storage</h2>
+          </div>
           <div class="table-scroll-10">
             <table
               class="table-compact"
@@ -244,6 +281,15 @@
                   <label for="stActSold" data-i18n="common.sold">Sold</label>
                 </div>
               </div>
+              <div class="g-6">
+                <label for="actNote" data-i18n="sales.note">Note</label>
+                <input
+                  id="actNote"
+                  type="text"
+                  placeholder="e.g., Café Rosa, cash"
+                  data-i18n-placeholder="sales.note_ph"
+                />
+              </div>
             </div>
             <div class="row" style="margin-bottom: 8px">
               <button
@@ -258,30 +304,223 @@
           </div>
         </section>
         <section class="card" id="card-sales" aria-labelledby="h2-sales">
-          <h2 id="h2-sales" data-i18n="sales.title">Sales</h2>
-          <!-- Recent actions table (renamed id) -->
-          <div class="table-scroll-10" style="margin-bottom: 8px">
-            <table
-              class="table-compact"
-              id="salesTable"
-              aria-label="Recent bulk actions"
-            >
+          <div class="card-head">
+            <h2 id="h2-sales" data-i18n="sales.title">Sales</h2>
+          </div>
+
+          <!-- Filters -->
+          <div class="grid" style="margin-bottom: 8px">
+            <div class="g-3">
+              <label for="salesMonth" data-i18n="sales.month">Month</label>
+              <select id="salesMonth">
+                <option value="all" data-i18n="sales.month_all">
+                  All months
+                </option>
+              </select>
+            </div>
+            <div class="g-3">
+              <label for="salesBerry" data-i18n="table.berry">Berry</label>
+              <select id="salesBerry">
+                <option value="all" data-i18n="sales.berry_all">
+                  All berries
+                </option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Table -->
+          <div class="table-scroll-10">
+            <table class="table-compact" id="salesTable" aria-label="Sales">
               <thead>
                 <tr>
-                  <th data-i18n="sales.date">Date</th>
+                  <th data-i18n="table.date">Date</th>
                   <th data-i18n="table.berry">Berry</th>
                   <th data-i18n="sales.prod">Prod</th>
-                  <th data-i18n="sales.action">Action</th>
                   <th class="right" data-i18n="sales.amount_kg">Amount (kg)</th>
+                  <th class="right" data-i18n="sales.price_pygkg">
+                    Price (PYG/kg)
+                  </th>
+                  <th class="right" data-i18n="sales.value_pyg">Value (PYG)</th>
+                  <th data-i18n="sales.note">Note</th>
                 </tr>
               </thead>
               <tbody></tbody>
+              <tfoot>
+                <tr class="total-row">
+                  <th data-i18n="totals.total">Total</th>
+                  <th></th>
+                  <th></th>
+                  <th class="right" id="salesTotKg">0.00</th>
+                  <th></th>
+                  <th class="right" id="salesTotVal">0</th>
+                  <th></th>
+                </tr>
+              </tfoot>
             </table>
+          </div>
+
+          <!-- Summaries -->
+          <div class="grid" style="margin-top: 8px">
+            <div class="g-6">
+              <h3 style="margin: 6px 0" data-i18n="sales.sum_by_month">
+                Summary by Month
+              </h3>
+              <table class="table-compact" id="salesSumMonth">
+                <thead>
+                  <tr>
+                    <th data-i18n="sales.month">Month</th>
+                    <th class="right" data-i18n="table.kg">Kg</th>
+                    <th class="right" data-i18n="sales.value_pyg">
+                      Value (PYG)
+                    </th>
+                  </tr>
+                </thead>
+                <tbody></tbody>
+              </table>
+            </div>
+            <div class="g-6">
+              <h3 style="margin: 6px 0" data-i18n="sales.sum_by_berry">
+                Summary by Berry
+              </h3>
+              <table class="table-compact" id="salesSumBerry">
+                <thead>
+                  <tr>
+                    <th data-i18n="table.berry">Berry</th>
+                    <th class="right" data-i18n="table.kg">Kg</th>
+                    <th class="right" data-i18n="sales.value_pyg">
+                      Value (PYG)
+                    </th>
+                  </tr>
+                </thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="row" style="margin-top: 8px">
+            <button
+              id="btnExportSalesCSV"
+              type="button"
+              class="btn"
+              data-i18n="sales.export"
+            >
+              Export CSV (Sales)
+            </button>
+          </div>
+        </section>
+
+        <section
+          class="card"
+          id="card-analytics"
+          aria-labelledby="h2-analytics"
+        >
+          <div class="card-head">
+            <h2 id="h2-analytics" data-i18n="analytics.title">
+              Harvest Analytics
+            </h2>
+          </div>
+
+          <!-- Filters -->
+          <div class="grid" style="margin-bottom: 8px">
+            <div class="g-3">
+              <label for="anaBerry" data-i18n="analytics.berry">Berry</label>
+              <select id="anaBerry">
+                <option value="all" data-i18n="analytics.all_berries">
+                  All berries
+                </option>
+              </select>
+            </div>
+            <div class="g-3">
+              <label for="anaPeriod" data-i18n="analytics.period">Period</label>
+              <select id="anaPeriod">
+                <option value="last7" data-i18n="analytics.last7">
+                  Last 7 days
+                </option>
+                <option value="last30" data-i18n="analytics.last30">
+                  Last 30 days
+                </option>
+                <option value="thisYear" data-i18n="analytics.thisYear" selected>
+                  This year
+                </option>
+              </select>
+            </div>
+            <div class="g-3">
+              <label for="anaAgg" data-i18n="analytics.agg">Aggregation</label>
+              <select id="anaAgg">
+                <option value="week" data-i18n="analytics.week">Week</option>
+                <option value="month" data-i18n="analytics.month" selected>Month</option>
+                <option value="year" data-i18n="analytics.year">Year</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- KPIs -->
+          <div class="grid kpi-row" style="margin-bottom: 8px">
+            <div class="g-3 kpi">
+              <div class="kpi-label" data-i18n="table.total_kg">Total (kg)</div>
+              <div class="kpi-value" id="kpiTotalKg">0.00</div>
+            </div>
+            <div class="g-3 kpi">
+              <div class="kpi-label" data-i18n="analytics.count">
+                # Harvests
+              </div>
+              <div class="kpi-value" id="kpiCount">0</div>
+            </div>
+            <div class="g-3 kpi">
+              <div class="kpi-label" data-i18n="analytics.avg_per_harvest">
+                Avg kg/harvest
+              </div>
+              <div class="kpi-value" id="kpiAvgKg">0.00</div>
+            </div>
+            <div class="g-3 kpi">
+              <div class="kpi-label" data-i18n="analytics.first_last">
+                First / Last
+              </div>
+              <div class="kpi-value" id="kpiFirstLast">—</div>
+            </div>
+            <div class="g-3 kpi">
+              <div class="kpi-label" data-i18n="analytics.picker_cost">Picker salary (PYG)</div>
+              <div class="kpi-value" id="kpiPickerPYG">0</div>
+            </div>
+          </div>
+
+          <!-- Charts -->
+          <div class="grid">
+            <div class="g-6">
+              <h3
+                id="h3AggTotals"
+                style="margin: 6px 0"
+                data-i18n="analytics.weekly_totals"
+              >
+                Weekly totals (kg)
+              </h3>
+              <canvas
+                id="chartWeekly"
+                width="600"
+                height="280"
+                role="img"
+                aria-label="Weekly totals"
+              ></canvas>
+            </div>
+            <div class="g-6">
+              <h3 style="margin: 6px 0" data-i18n="analytics.ma7">
+                7-day moving average (kg)
+              </h3>
+              <canvas
+                id="chartMA"
+                width="600"
+                height="280"
+                role="img"
+                aria-label="7-day moving average"
+              ></canvas>
+            </div>
           </div>
         </section>
 
         <section class="card" id="card-prices" aria-labelledby="h2-prices">
-          <h2 id="h2-prices" data-i18n="prices.title">Prices</h2>
+          <div class="card-head">
+            <h2 id="h2-prices" data-i18n="prices.title">Prices</h2>
+          </div>
           <p class="muted" data-i18n="prices.hint">
             Set current PYG/kg for bulk products. You can type “k” shorthand
             (e.g., 80k). Values round to nearest 5,000.

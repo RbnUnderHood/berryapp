@@ -16,6 +16,7 @@ const save = (k, v) => localStorage.setItem(k, JSON.stringify(v));
 
 // Demo flag key
 K.demoSeeded = "berry.v1.demo_seeded";
+K.demoSeededExt = "berry.v1.demo_seeded_ext_202406";
 
 let harvests = load(K.harvests, []);
 let bulkActions = load(K.bulkActions, []);
@@ -44,6 +45,7 @@ const I18N = {
       berry: "Berry",
       product: "Product",
       weight_g: "Weight (g)",
+      picker_pyg: "Picker salary (PYG)",
       add: "Add",
       export: "Export CSV (Harvests)",
     },
@@ -64,9 +66,19 @@ const I18N = {
       title: "Sales",
       recent: "Recent actions",
       date: "Date",
-      prod: "Prod",
+      prod: "Product",
       action: "Action",
       amount_kg: "Amount (kg)",
+      price_pygkg: "Price (PYG/kg)",
+      value_pyg: "Value (PYG)",
+      note: "Note",
+      note_ph: "e.g., Café Rosa, cash",
+      month: "Month",
+      month_all: "All months",
+      berry_all: "All berries",
+      sum_by_month: "Summary by Month",
+      sum_by_berry: "Summary by Berry",
+      export: "Export CSV (Sales)",
     },
     prices: {
       title: "Prices",
@@ -82,8 +94,47 @@ const I18N = {
       frozen_kg: "Frozen (kg)",
       fresh_kg: "Fresh (kg)",
       value_pyg: "Value (PYG)",
+      kg: "Kg",
     },
     totals: { total: "Total" },
+    monthsShort: [
+      "Jan",
+      "Feb",
+      "Mar",
+      "Apr",
+      "May",
+      "Jun",
+      "Jul",
+      "Aug",
+      "Sep",
+      "Oct",
+      "Nov",
+      "Dec",
+    ],
+    analytics: {
+      title: "Harvest Analytics",
+      berry: "Berry",
+      period: "Period",
+      agg: "Aggregation",
+      week: "Week",
+      month: "Month",
+      year: "Year",
+      from: "From",
+      to: "To",
+      all_berries: "All berries",
+      last30: "Last 30 days",
+      last7: "Last 7 days",
+      thisYear: "This year",
+      custom: "Custom",
+      count: "# Harvests",
+      avg_per_harvest: "Avg kg/harvest",
+      first_last: "First / Last",
+      weekly_totals: "Weekly totals (kg)",
+      monthly_totals: "Monthly totals (kg)",
+      yearly_totals: "Yearly totals (kg)",
+      picker_cost: "Picker salary (PYG)",
+      ma7: "7-day moving average (kg)",
+    },
   },
   de: {
     app: { title: "Beeren-Zähler" },
@@ -93,10 +144,7 @@ const I18N = {
       remove: "Entfernen",
       sold: "Verkauft",
     },
-    pill: {
-      fresh: "Frischbestand: {v} kg",
-      frozen: "Tiefkühlbestand: {v} kg",
-    },
+    pill: { fresh: "Frischbestand: {v} kg", frozen: "Tiefkühlbestand: {v} kg" },
     berries: {
       blueberries: "Heidelbeeren",
       mulberries: "Maulbeeren",
@@ -109,6 +157,7 @@ const I18N = {
       berry: "Beere",
       product: "Produkt",
       weight_g: "Gewicht (g)",
+      picker_pyg: "Pflückerlohn (PYG)",
       add: "Hinzufügen",
       export: "CSV exportieren (Ernten)",
     },
@@ -129,9 +178,19 @@ const I18N = {
       title: "Verkäufe",
       recent: "Letzte Aktionen",
       date: "Datum",
-      prod: "Prod",
+      prod: "Produkt",
       action: "Aktion",
       amount_kg: "Menge (kg)",
+      price_pygkg: "Preis (PYG/kg)",
+      value_pyg: "Wert (PYG)",
+      note: "Notiz",
+      note_ph: "z. B. Café Rosa, bar",
+      month: "Monat",
+      month_all: "Alle Monate",
+      berry_all: "Alle Beeren",
+      sum_by_month: "Zusammenfassung nach Monat",
+      sum_by_berry: "Zusammenfassung nach Beere",
+      export: "CSV exportieren (Verkäufe)",
     },
     prices: {
       title: "Preise",
@@ -147,8 +206,47 @@ const I18N = {
       frozen_kg: "Gefroren (kg)",
       fresh_kg: "Frisch (kg)",
       value_pyg: "Wert (PYG)",
+      kg: "Kg",
     },
     totals: { total: "Summe" },
+    monthsShort: [
+      "Jan",
+      "Feb",
+      "Mär",
+      "Apr",
+      "Mai",
+      "Jun",
+      "Jul",
+      "Aug",
+      "Sep",
+      "Okt",
+      "Nov",
+      "Dez",
+    ],
+    analytics: {
+      title: "Ernte-Analytik",
+      berry: "Beere",
+      period: "Zeitraum",
+      agg: "Aggregation",
+      week: "Woche",
+      month: "Monat",
+      year: "Jahr",
+      from: "Von",
+      to: "Bis",
+      all_berries: "Alle Beeren",
+      last30: "Letzte 30 Tage",
+      last7: "Letzte 7 Tage",
+      thisYear: "Dieses Jahr",
+      custom: "Benutzerdefiniert",
+      count: "# Ernten",
+      avg_per_harvest: "Ø kg/Ernte",
+      first_last: "Erste / Letzte",
+      weekly_totals: "Wöchentliche Summen (kg)",
+      monthly_totals: "Monatliche Summen (kg)",
+      yearly_totals: "Jährliche Summen (kg)",
+      picker_cost: "Pflückerlohn (PYG)",
+      ma7: "7-Tage gleitender Durchschnitt (kg)",
+    },
   },
   gsw: {
     app: { title: "Beeri-Tally" },
@@ -171,6 +269,7 @@ const I18N = {
       berry: "Beeri",
       product: "Produkt",
       weight_g: "Gwicht (g)",
+      picker_pyg: "Pflückerloun (PYG)",
       add: "Hinzuefüege",
       export: "CSV exportiere (Ernte)",
     },
@@ -191,9 +290,19 @@ const I18N = {
       title: "Verchöif",
       recent: "Letschti Aktione",
       date: "Datum",
-      prod: "Prod",
+      prod: "Produkt",
       action: "Aktion",
       amount_kg: "Mängi (kg)",
+      price_pygkg: "Pris (PYG/kg)",
+      value_pyg: "Wärt (PYG)",
+      note: "Notiz",
+      note_ph: "z. B. Café Rosa, bar",
+      month: "Monet",
+      month_all: "Alli Monet",
+      berry_all: "Alli Beeri",
+      sum_by_month: "Zämesfassig nach Monet",
+      sum_by_berry: "Zämesfassig nach Beeri",
+      export: "CSV exportiere (Verchöif)",
     },
     prices: {
       title: "Pris",
@@ -209,14 +318,54 @@ const I18N = {
       frozen_kg: "Gfrorn (kg)",
       fresh_kg: "Frisch (kg)",
       value_pyg: "Wärt (PYG)",
+      kg: "Kg",
     },
     totals: { total: "Total" },
+    monthsShort: [
+      "Jan",
+      "Feb",
+      "Mär",
+      "Apr",
+      "Mai",
+      "Jun",
+      "Jul",
+      "Aug",
+      "Sep",
+      "Okt",
+      "Nov",
+      "Dez",
+    ],
+    analytics: {
+      title: "Ernte-Analytik",
+      berry: "Beeri",
+      period: "Ziitruum",
+      agg: "Aggregeerig",
+      week: "Wuche",
+      month: "Monet",
+      year: "Jahr",
+      from: "Vo",
+      to: "Bis",
+      all_berries: "Alli Beeri",
+      last30: "Letschti 30 Täg",
+      last7: "Letschti 7 Täg",
+      thisYear: "Das Jahr",
+      custom: "Eigen",
+      count: "# Ernte",
+      avg_per_harvest: "Ø kg/Ernte",
+      first_last: "Ersti / Letschti",
+      weekly_totals: "Wuche-Summe (kg)",
+      monthly_totals: "Monats-Summe (kg)",
+      yearly_totals: "Jahrs-Summe (kg)",
+      picker_cost: "Pflückerloun (PYG)",
+      ma7: "7-Täg gleitende Durchschnitt (kg)",
+    },
   },
-  // Later: add gsw: { ... } or rm: { ... }
 };
 
 K.lang = "berry.lang";
-let LANG = localStorage.getItem(K.lang) || "en";
+let LANG = localStorage.getItem(K.lang) || "gsw";
+K.theme = "berry.v1.theme";
+let THEME = localStorage.getItem(K.theme) || "dark";
 
 function t(path, params) {
   const segs = path.split(".");
@@ -230,9 +379,18 @@ function t(path, params) {
 function applyTranslations() {
   // Document title
   document.title = t("app.title");
+  // html lang attribute for accessibility/SEO
+  if (document?.documentElement) document.documentElement.lang = LANG;
   // Simple innerText replacement
   document.querySelectorAll("[data-i18n]").forEach((el) => {
     el.textContent = t(el.getAttribute("data-i18n"));
+  });
+  // Translate placeholders
+  document.querySelectorAll("[data-i18n-placeholder]")?.forEach((el) => {
+    const key = el.getAttribute("data-i18n-placeholder");
+    if (key && "placeholder" in el) {
+      el.placeholder = t(key);
+    }
   });
   // Pills with numbers: use data-i18n-aria + current values
   const fresh = document.getElementById("pillFresh");
@@ -249,6 +407,77 @@ function applyTranslations() {
   }
 }
 
+// ---- Theme handling ----
+function applyTheme(theme) {
+  THEME = theme === "light" ? "light" : "dark";
+  document.documentElement.setAttribute("data-theme", THEME);
+  localStorage.setItem(K.theme, THEME);
+  // sync toggle
+  const toggle = document.getElementById("themeToggle");
+  if (toggle) toggle.checked = THEME === "light";
+  // re-render charts to pick new axis colors
+  if (typeof renderAnalytics === "function") renderAnalytics();
+}
+
+// Format YYYY-MM to localized label like "Sep 2025"
+function formatMonthKey(key) {
+  if (!key || key.length !== 7) return key || "";
+  const [y, m] = key.split("-");
+  const idx = Math.max(0, Math.min(11, Number(m) - 1));
+  const names = (I18N[LANG] && I18N[LANG].monthsShort) || I18N.en.monthsShort;
+  return `${names[idx]} ${y}`;
+}
+
+function populateSalesFilters() {
+  const monthSel = document.getElementById("salesMonth");
+  const berrySel = document.getElementById("salesBerry");
+  const prevMonth = monthSel?.value || "all";
+  const prevBerry = berrySel?.value || "all";
+  // Months from sold actions
+  if (monthSel) {
+    const months = Array.from(
+      new Set(
+        (bulkActions || [])
+          .filter((a) => a.action === "sold")
+          .map((a) => (a.dateISO || "").slice(0, 7))
+      )
+    )
+      .filter(Boolean)
+      .sort()
+      .reverse();
+    monthSel.innerHTML = "";
+    const optAll = document.createElement("option");
+    optAll.value = "all";
+    optAll.setAttribute("data-i18n", "sales.month_all");
+    optAll.textContent = t("sales.month_all");
+    monthSel.appendChild(optAll);
+    months.forEach((m) => {
+      const o = document.createElement("option");
+      o.value = m;
+      o.textContent = formatMonthKey(m);
+      monthSel.appendChild(o);
+    });
+    monthSel.value = months.includes(prevMonth) ? prevMonth : "all";
+  }
+  // Berries
+  if (berrySel) {
+    const all = document.createElement("option");
+    all.value = "all";
+    all.setAttribute("data-i18n", "sales.berry_all");
+    all.textContent = t("sales.berry_all");
+    const prev = prevBerry;
+    berrySel.innerHTML = "";
+    berrySel.appendChild(all);
+    (BERRIES || []).forEach((b) => {
+      const o = document.createElement("option");
+      o.value = b.id;
+      o.textContent = berryLabel(b.id);
+      berrySel.appendChild(o);
+    });
+    berrySel.value = (BERRIES || []).some((b) => b.id === prev) ? prev : "all";
+  }
+}
+
 function initLangSwitch() {
   const radio = document.querySelector(`input[name="lang"][value="${LANG}"]`);
   if (radio) radio.checked = true;
@@ -262,10 +491,15 @@ function initLangSwitch() {
         // re-render to refresh headers/labels produced in code
         initHarvestUI && initHarvestUI();
         initStorageUI && initStorageUI();
+        populateSalesFilters && populateSalesFilters();
+        // refresh analytics labels and UI
+        if (typeof refreshAnalyticsFiltersLocale === "function")
+          refreshAnalyticsFiltersLocale();
         renderHarvestTable && renderHarvestTable();
         renderStorage && renderStorage();
         renderRecentActions && renderRecentActions();
         renderPrices && renderPrices();
+        if (typeof renderAnalytics === "function") renderAnalytics();
       },
       { passive: true }
     );
@@ -406,29 +640,95 @@ function renderStorage() {
 }
 
 function renderRecentActions() {
+  // Sales card logic: filter, summaries, note, price snapshot, CSV
   const tb = document.querySelector("#salesTable tbody");
   if (!tb) return;
   tb.innerHTML = "";
-  // show most recent first, cap to 10
-  bulkActions
-    .slice()
-    .reverse()
-    .slice(0, 10)
-    .forEach((a) => {
-      const kg = (a.amount_g || 0) / 1000;
-      const prodLabel =
-        a.product === "fresh" ? t("common.fresh") : t("common.frozen");
-      const actLabel =
-        a.action === "sold" ? t("common.sold") : t("common.remove");
-      const tr = document.createElement("tr");
-      tr.innerHTML = `
+  // Get filters
+  const monthSel = document.getElementById("salesMonth");
+  const berrySel = document.getElementById("salesBerry");
+  const monthVal = monthSel?.value || "all";
+  const berryVal = berrySel?.value || "all";
+  // Filter actions: only sold
+  let actions = (bulkActions || []).filter((a) => a.action === "sold");
+  if (monthVal !== "all") {
+    actions = actions.filter((a) => (a.dateISO || "").slice(0, 7) === monthVal);
+  }
+  if (berryVal !== "all") {
+    actions = actions.filter((a) => a.berryId === berryVal);
+  }
+  // Table rows
+  let totKg = 0,
+    totVal = 0;
+  actions.forEach((a) => {
+    const kg = (a.amount_g || 0) / 1000;
+    const prodLabel =
+      a.product === "fresh" ? t("common.fresh") : t("common.frozen");
+    const price = a.priceSnapshot || pricePYG(a.berryId, a.product);
+    const value = Math.round(kg * price);
+    totKg += kg;
+    totVal += value;
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
       <td>${formatDateEU(a.dateISO)}</td>
-  <td>${berryLabel(a.berryId)}</td>
+      <td>${berryLabel(a.berryId)}</td>
       <td>${prodLabel}</td>
-      <td>${actLabel}</td>
-  <td class="right">${kg.toFixed(2)}</td>`;
-      tb.appendChild(tr);
+      <td class="right">${kg.toFixed(2)}</td>
+      <td class="right">${toShortPYG(price)}</td>
+      <td class="right">${toShortPYG(value)}</td>
+      <td>${a.note || ""}</td>`;
+    tb.appendChild(tr);
+  });
+  // Totals
+  const totKgEl = document.getElementById("salesTotKg");
+  const totValEl = document.getElementById("salesTotVal");
+  if (totKgEl) totKgEl.textContent = totKg.toFixed(2);
+  if (totValEl) totValEl.textContent = toShortPYG(totVal);
+  // Summaries by month
+  const sumMonth = {};
+  actions.forEach((a) => {
+    const m = (a.dateISO || "").slice(0, 7);
+    if (!sumMonth[m]) sumMonth[m] = { kg: 0, val: 0 };
+    const kg = (a.amount_g || 0) / 1000;
+    const price = a.priceSnapshot || pricePYG(a.berryId, a.product);
+    sumMonth[m].kg += kg;
+    sumMonth[m].val += Math.round(kg * price);
+  });
+  const sumMonthTb = document.querySelector("#salesSumMonth tbody");
+  if (sumMonthTb) {
+    sumMonthTb.innerHTML = "";
+    Object.entries(sumMonth).forEach(([m, v]) => {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `<td>${formatMonthKey(
+        m
+      )}</td><td class="right">${v.kg.toFixed(
+        2
+      )}</td><td class="right">${toShortPYG(v.val)}</td>`;
+      sumMonthTb.appendChild(tr);
     });
+  }
+  // Summaries by berry
+  const sumBerry = {};
+  actions.forEach((a) => {
+    const b = a.berryId;
+    if (!sumBerry[b]) sumBerry[b] = { kg: 0, val: 0 };
+    const kg = (a.amount_g || 0) / 1000;
+    const price = a.priceSnapshot || pricePYG(a.berryId, a.product);
+    sumBerry[b].kg += kg;
+    sumBerry[b].val += Math.round(kg * price);
+  });
+  const sumBerryTb = document.querySelector("#salesSumBerry tbody");
+  if (sumBerryTb) {
+    sumBerryTb.innerHTML = "";
+    Object.entries(sumBerry).forEach(([b, v]) => {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `<td>${berryLabel(b)}</td><td class="right">${v.kg.toFixed(
+        2
+      )}</td><td class="right">${toShortPYG(v.val)}</td>`;
+      sumBerryTb.appendChild(tr);
+    });
+  }
+  // End of renderRecentActions
 }
 // Apply bulk action
 async function onDoBulkAction() {
@@ -445,6 +745,7 @@ async function onDoBulkAction() {
   const action =
     document.querySelector('input[name="stAction"]:checked')?.value || "remove";
   // optional: block when insufficient? (soft for now; we’ll add hard check later)
+  const note = document.getElementById("actNote")?.value || "";
   const rec = {
     id: crypto.randomUUID(),
     dateISO,
@@ -452,12 +753,17 @@ async function onDoBulkAction() {
     product,
     action,
     amount_g,
+    note,
+    priceSnapshot: pricePYG(berryId, product),
   };
   bulkActions.push(rec);
   save(K.bulkActions, bulkActions);
   document.getElementById("actWeight").value = "";
+  if (document.getElementById("actNote"))
+    document.getElementById("actNote").value = "";
   renderStorage();
   renderRecentActions();
+  renderSales();
 }
 const BERRIES = [
   { id: "blueberries" },
@@ -679,6 +985,87 @@ function seedDemoDataIfEmpty() {
   } catch {}
 }
 
+// Seed extended demo data from mid-2024 if not already seeded
+function seedExtendedDemoDataIfNeeded() {
+  try {
+    if (localStorage.getItem(K.demoSeededExt) === "1") return;
+    const start = "2024-06-01";
+    const today = todayLocalISO();
+    // local ISO add days
+    function isoAddDaysLocal(iso, delta) {
+      const [y, m, d] = iso.split("-").map((x) => parseInt(x, 10));
+      const dt = new Date(y, (m || 1) - 1, d || 1);
+      dt.setDate(dt.getDate() + delta);
+      const yy = dt.getFullYear();
+      const mm = String(dt.getMonth() + 1).padStart(2, "0");
+      const dd = String(dt.getDate()).padStart(2, "0");
+      return `${yy}-${mm}-${dd}`;
+    }
+    // pseudo-random helper
+    function rand(min, max) {
+      return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
+    function pick(arr) {
+      return arr[Math.floor(Math.random() * arr.length)];
+    }
+    // Generate harvests every ~3 days, sometimes two per day
+    let date = start;
+    let step = 0;
+    const berries = (BERRIES || []).map((b) => b.id);
+    while (date <= today) {
+      // 1 harvest
+      const berry1 = pick(berries);
+      const prod1 = Math.random() < 0.5 ? "fresh" : "frozen";
+      const w1 = rand(900, 2400);
+      harvests.push({
+        id: crypto.randomUUID(),
+        dateISO: date,
+        berryId: berry1,
+        weight_g: w1,
+        fresh_g: prod1 === "fresh" ? w1 : 0,
+        frozen_g: prod1 === "frozen" ? w1 : 0,
+        note: "",
+      });
+      // 30% chance of a second harvest same day
+      if (Math.random() < 0.3) {
+        const berry2 = pick(berries);
+        const prod2 = Math.random() < 0.5 ? "fresh" : "frozen";
+        const w2 = rand(700, 1800);
+        harvests.push({
+          id: crypto.randomUUID(),
+          dateISO: date,
+          berryId: berry2,
+          weight_g: w2,
+          fresh_g: prod2 === "fresh" ? w2 : 0,
+          frozen_g: prod2 === "frozen" ? w2 : 0,
+          note: "",
+        });
+      }
+      // Occasionally add a sale/remove action roughly every ~2 weeks
+      if (step % 5 === 0) {
+        const b = pick(berries);
+        const product = Math.random() < 0.5 ? "fresh" : "frozen";
+        const amount_g = rand(200, 800);
+        bulkActions.push({
+          id: crypto.randomUUID(),
+          dateISO: date,
+          berryId: b,
+          product,
+          action: Math.random() < 0.7 ? "sold" : "remove",
+          amount_g,
+          note: "",
+          priceSnapshot: pricePYG(b, product),
+        });
+      }
+      date = isoAddDaysLocal(date, 3);
+      step++;
+    }
+    save(K.harvests, harvests);
+    save(K.bulkActions, bulkActions);
+    localStorage.setItem(K.demoSeededExt, "1");
+  } catch {}
+}
+
 function renderPrices() {
   const tb = document.querySelector("#pricesTable tbody");
   if (!tb) return;
@@ -821,6 +1208,7 @@ function onAddHarvest() {
   const berryId = document.getElementById("harvestBerry").value;
   const dateISO = document.getElementById("harvestDate").value;
   const weight_g = Number(document.getElementById("harvestWeight").value || 0);
+  const picker_pyg = parsePYG(document.getElementById("harvestPickerPYG")?.value || 0);
   const today = todayLocalISO();
   if (!berryId || !dateISO || weight_g <= 0) {
     alert("Fill date, berry, and a positive weight");
@@ -842,11 +1230,14 @@ function onAddHarvest() {
     weight_g,
     fresh_g,
     frozen_g,
+    picker_pyg,
     note: "",
   };
   harvests.push(h);
   save(K.harvests, harvests);
   document.getElementById("harvestWeight").value = "";
+  const p = document.getElementById("harvestPickerPYG");
+  if (p) p.value = "";
   renderHarvestTable();
   recomputeStockPills();
 }
@@ -863,7 +1254,7 @@ function renderHarvestTable() {
   }
   harvests
     .slice()
-    .sort((a, b) => a.dateISO.localeCompare(b.dateISO))
+    .sort((a, b) => b.dateISO.localeCompare(a.dateISO))
     .forEach((h) => {
       const diff = dayDiffFromToday(h.dateISO);
       const cls = diff === 0 ? "tr-today" : diff === 1 ? "tr-yesterday" : "";
@@ -876,9 +1267,13 @@ function renderHarvestTable() {
             : h.dateISO
         }</td>
                 <td>${berryLabel(h.berryId)}</td>
-				<td class="right">${(h.weight_g / 1000).toFixed(2)}</td>
 				<td class="right">${((h.frozen_g || 0) / 1000).toFixed(2)}</td>
-				<td class="right">${((h.fresh_g || 0) / 1000).toFixed(2)}</td>`;
+				<td class="right">${((h.fresh_g || 0) / 1000).toFixed(2)}</td>
+                <td class="right">${
+                  typeof toShortPYG === "function"
+                    ? toShortPYG(h.picker_pyg || 0)
+                    : String(h.picker_pyg || 0)
+                }</td>`;
       tb.appendChild(tr);
     });
 }
@@ -891,6 +1286,7 @@ function exportHarvestCSV() {
     "weight_total_g",
     "fresh_g",
     "frozen_g",
+    "picker_pyg",
     "note",
   ];
   const rows = harvests.map((h) => [
@@ -900,6 +1296,7 @@ function exportHarvestCSV() {
     h.weight_g,
     h.fresh_g || 0,
     h.frozen_g || 0,
+    h.picker_pyg || 0,
     h.note || "",
   ]);
   const csv = [header, ...rows]
@@ -923,6 +1320,7 @@ function exportHarvestCSV() {
 }
 
 seedDemoDataIfEmpty();
+// Ensure prices initialized (renderPrices also normalizes); then extend demo
 initHarvestUI();
 renderHarvestTable();
 recomputeStockPills();
@@ -931,28 +1329,503 @@ initStorageUI();
 renderStorage();
 renderRecentActions();
 renderPrices();
+// Theme init + toggle
+applyTheme(THEME);
+document.getElementById("themeToggle")?.addEventListener("change", (e) => {
+  const isLight = e.target.checked;
+  applyTheme(isLight ? "light" : "dark");
+});
+seedExtendedDemoDataIfNeeded();
 initLangSwitch();
 document.getElementById("btnAddHarvest")?.addEventListener("click", () => {
   onAddHarvest();
   renderStorage();
   renderRecentActions();
+  if (typeof renderAnalytics === "function") renderAnalytics();
 });
 document
   .getElementById("btnExportHarvestCSV")
   ?.addEventListener("click", exportHarvestCSV);
 // Ensure Sales UI is initialized and Apply is wired
 (function initSalesUI() {
+  // Bulk action berry select
   const sel = document.getElementById("actBerry");
   if (sel && sel.options.length === 0) {
     sel.innerHTML = "";
     (BERRIES || []).forEach((b) => {
       const o = document.createElement("option");
       o.value = b.id;
-      o.textContent = b.name;
+      o.textContent = berryLabel(b.id);
       sel.appendChild(o);
     });
   }
   document.getElementById("btnDoBulkAction")?.addEventListener("click", () => {
     onDoBulkAction();
   });
+  // Sales filters
+  const monthSel = document.getElementById("salesMonth");
+  const berrySel = document.getElementById("salesBerry");
+  populateSalesFilters();
+  // Filter change events
+  monthSel?.addEventListener("change", renderSales);
+  berrySel?.addEventListener("change", renderSales);
+  // CSV export
+  document
+    .getElementById("btnExportSalesCSV")
+    ?.addEventListener("click", exportSalesCSV);
+  // Initial render
+  renderSales();
 })();
+// Render Sales card
+function renderSales() {
+  renderRecentActions();
+}
+// Export Sales CSV
+function exportSalesCSV() {
+  const header = [
+    "record_type",
+    "date",
+    "berry",
+    "product",
+    "amount_kg",
+    "price_pygkg",
+    "value_pyg",
+    "note",
+  ];
+  // Only sold actions
+  const monthSel = document.getElementById("salesMonth");
+  const berrySel = document.getElementById("salesBerry");
+  const monthVal = monthSel?.value || "all";
+  const berryVal = berrySel?.value || "all";
+  let actions = (bulkActions || []).filter((a) => a.action === "sold");
+  if (monthVal !== "all") {
+    actions = actions.filter((a) => (a.dateISO || "").slice(0, 7) === monthVal);
+  }
+  if (berryVal !== "all") {
+    actions = actions.filter((a) => a.berryId === berryVal);
+  }
+  const rows = actions.map((a) => {
+    const kg = (a.amount_g || 0) / 1000;
+    const price = a.priceSnapshot || pricePYG(a.berryId, a.product);
+    const value = Math.round(kg * price);
+    return [
+      "sale",
+      formatDateEU(a.dateISO),
+      berryLabel(a.berryId),
+      a.product,
+      kg.toFixed(2),
+      toShortPYG(price),
+      toShortPYG(value),
+      a.note || "",
+    ];
+  });
+  const csv = [header, ...rows]
+    .map((r) =>
+      r
+        .map((v) => {
+          const s = String(v ?? "");
+          return s.includes(",") || s.includes('"') || s.includes("\n")
+            ? '"' + s.replace(/"/g, '""') + '"'
+            : s;
+        })
+        .join(",")
+    )
+    .join("\n");
+  const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "sales_export.csv";
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+// -------- Analytics (Harvest) --------
+// Utilities for date ranges + series
+function isoToday() {
+  return todayLocalISO();
+}
+function addDays(iso, n) {
+  const d = new Date(iso + "T00:00:00");
+  d.setDate(d.getDate() + n);
+  return d.toISOString().slice(0, 10);
+}
+function startOfYear() {
+  const d = new Date();
+  return `${d.getFullYear()}-01-01`;
+}
+function clampRange(from, to) {
+  if (!from || !to) return null;
+  if (from > to) [from, to] = [to, from];
+  return { from, to };
+}
+function rangeDays(from, to) {
+  const out = [];
+  let cur = from;
+  while (cur <= to) {
+    out.push(cur);
+    cur = addDays(cur, 1);
+  }
+  return out;
+}
+function movingAvg(arr, win = 7) {
+  const res = [];
+  let sum = 0;
+  for (let i = 0; i < arr.length; i++) {
+    sum += arr[i];
+    if (i >= win) sum -= arr[i - win];
+    res.push(i >= win - 1 ? sum / win : null);
+  }
+  return res;
+}
+function toWeekKey(iso) {
+  const d = new Date(iso + "T00:00:00");
+  const onejan = new Date(d.getFullYear(), 0, 1);
+  const day = Math.floor((d - onejan) / 86400000) + onejan.getDay();
+  const week = Math.floor(day / 7) + 1;
+  return `${d.getFullYear()}-W${String(week).padStart(2, "0")}`;
+}
+function toMonthKey(iso) {
+  // YYYY-MM
+  if (!iso || iso.length < 7) return iso || "";
+  return iso.slice(0, 7);
+}
+function toYearKey(iso) {
+  if (!iso) return "";
+  return String(iso).slice(0, 4);
+}
+function formatAggKey(key, agg) {
+  if (agg === "year") return key;
+  if (agg === "month") return formatMonthKey(key);
+  // week: key is like YYYY-Www → show e.g., "W34 ’25" localized
+  try {
+    const [y, w] = key.split("-W");
+    const yy = String(Number(y) % 100).padStart(2, "0");
+    return `W${w} ’${yy}`;
+  } catch {
+    return key;
+  }
+}
+
+// Populate filters
+function initAnalyticsUI() {
+  const selB = document.getElementById("anaBerry");
+  if (selB && selB.options.length <= 1) {
+    (BERRIES || []).forEach((b) => {
+      const o = document.createElement("option");
+      o.value = b.id;
+      o.textContent = berryLabel ? berryLabel(b.id) : b.name || b.id;
+      selB.appendChild(o);
+    });
+  }
+  const selP = document.getElementById("anaPeriod");
+  const selAgg = document.getElementById("anaAgg");
+  // ensure defaults if not set by markup or previous state
+  if (selP && !selP.value) selP.value = "thisYear";
+  if (selAgg && !selAgg.value) selAgg.value = "month";
+  if (selP) selP.onchange = renderAnalytics;
+  if (selAgg) {
+    selAgg.onchange = () => {
+      // update bar chart title i18n key
+      const h = document.getElementById("h3AggTotals");
+      if (h) {
+        const key =
+          selAgg.value === "month"
+            ? "analytics.monthly_totals"
+            : selAgg.value === "year"
+            ? "analytics.yearly_totals"
+            : "analytics.weekly_totals";
+        h.setAttribute("data-i18n", key);
+        h.textContent = t(key);
+      }
+      renderAnalytics();
+    };
+  }
+  if (selB) {
+    selB.onchange = renderAnalytics;
+  }
+  // Update title once based on default/current aggregation
+  const h = document.getElementById("h3AggTotals");
+  if (selAgg && h) {
+    const key =
+      selAgg.value === "month"
+        ? "analytics.monthly_totals"
+        : selAgg.value === "year"
+        ? "analytics.yearly_totals"
+        : "analytics.weekly_totals";
+    h.setAttribute("data-i18n", key);
+    h.textContent = t(key);
+  }
+  if (selP) renderAnalytics();
+}
+
+// Update berry option labels on language change without rebuilding options
+function refreshAnalyticsFiltersLocale() {
+  const selB = document.getElementById("anaBerry");
+  if (!selB) return;
+  Array.from(selB.options).forEach((opt) => {
+    if (opt.value && opt.value !== "all")
+      opt.textContent = berryLabel(opt.value);
+  });
+  // also update aggregation title label
+  const selAgg = document.getElementById("anaAgg");
+  const h = document.getElementById("h3AggTotals");
+  if (selAgg && h) {
+    const key =
+      selAgg.value === "month"
+        ? "analytics.monthly_totals"
+        : selAgg.value === "year"
+        ? "analytics.yearly_totals"
+        : "analytics.weekly_totals";
+    h.setAttribute("data-i18n", key);
+    h.textContent = t(key);
+  }
+}
+
+// Compute filtered series (daily kg) and KPIs from harvests
+function analyticsData() {
+  const berryId = document.getElementById("anaBerry")?.value || "all";
+  const period = document.getElementById("anaPeriod")?.value || "last30";
+  const agg = document.getElementById("anaAgg")?.value || "week";
+  const fromTo = (() => {
+    const today = isoToday();
+    if (period === "last7") return { from: addDays(today, -6), to: today };
+    if (period === "last30") return { from: addDays(today, -29), to: today };
+    if (period === "thisYear") return { from: startOfYear(), to: today };
+    return null;
+  })();
+  if (!fromTo)
+    return {
+      days: [],
+      dailyKg: [],
+      rows: [],
+      buckets: {},
+      ma: [],
+      totalKg: 0,
+      count: 0,
+      avgKg: 0,
+      first: null,
+      last: null,
+    };
+
+  // Filter harvests in range, by berry
+  const rows = (harvests || [])
+    .filter((h) =>
+      !berryId || berryId === "all" ? true : h.berryId === berryId
+    )
+    .filter((h) => h.dateISO >= fromTo.from && h.dateISO <= fromTo.to)
+    .sort((a, b) => a.dateISO.localeCompare(b.dateISO));
+
+  const days = rangeDays(fromTo.from, fromTo.to);
+  const map = Object.fromEntries(days.map((d) => [d, 0]));
+  rows.forEach((h) => {
+    map[h.dateISO] += (h.weight_g || 0) / 1000;
+  }); // kg per day
+  const dailyKg = days.map((d) => map[d] || 0);
+  const ma = movingAvg(dailyKg, 7);
+
+  // Aggregation buckets
+  const buckets = {};
+  const toKey =
+    agg === "month" ? toMonthKey : agg === "year" ? toYearKey : toWeekKey;
+  days.forEach((d, i) => {
+    const key = toKey(d);
+    buckets[key] = (buckets[key] || 0) + dailyKg[i];
+  });
+
+  // KPIs
+  const totalKg = dailyKg.reduce((s, x) => s + x, 0);
+  const count = rows.length;
+  const avgKg = count ? totalKg / count : 0;
+  const first = rows[0]?.dateISO || null;
+  const last = rows[rows.length - 1]?.dateISO || null;
+
+  return {
+    days,
+    dailyKg,
+    ma,
+    buckets,
+    rows,
+    totalKg,
+    count,
+    avgKg,
+    first,
+    last,
+    agg,
+  };
+}
+
+// Simple canvas drawing helpers (no libs)
+function clearCanvas(ctx) {
+  ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+}
+function drawAxes(ctx, padding) {
+  const axis =
+    getComputedStyle(document.documentElement)
+      .getPropertyValue("--axis")
+      .trim() || "#2a3144";
+  ctx.strokeStyle = axis;
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(padding, padding);
+  ctx.lineTo(padding, ctx.canvas.height - padding);
+  ctx.lineTo(ctx.canvas.width - padding, ctx.canvas.height - padding);
+  ctx.stroke();
+}
+function drawYTicks(ctx, maxVal, padding) {
+  const axis =
+    getComputedStyle(document.documentElement)
+      .getPropertyValue("--axis")
+      .trim() || "#2a3144";
+  ctx.fillStyle = axis;
+  ctx.strokeStyle = axis + "40"; // light grid
+  ctx.font = "13px system-ui, sans-serif";
+  ctx.textAlign = "right";
+  ctx.textBaseline = "middle";
+  const h = ctx.canvas.height;
+  const w = ctx.canvas.width;
+  const innerH = h - padding * 2;
+  const steps = 4; // 0%, 25, 50, 75, 100
+  const niceMax = maxVal <= 1 ? 1 : Math.ceil(maxVal);
+  for (let i = 0; i <= steps; i++) {
+    const v = (niceMax * i) / steps;
+    const y = padding + innerH * (1 - v / niceMax);
+    ctx.globalAlpha = 0.25;
+    ctx.beginPath();
+    ctx.moveTo(padding, y);
+    ctx.lineTo(w - padding, y);
+    ctx.stroke();
+    ctx.globalAlpha = 1;
+    // small tick on the Y axis
+    ctx.beginPath();
+    ctx.moveTo(padding - 4, y);
+    ctx.lineTo(padding, y);
+    ctx.stroke();
+    ctx.fillText(v.toFixed(0), padding - 6, y);
+  }
+  return niceMax;
+}
+function drawXLabels(ctx, labels, padding) {
+  const axis =
+    getComputedStyle(document.documentElement)
+      .getPropertyValue("--axis")
+      .trim() || "#2a3144";
+  ctx.fillStyle = axis;
+  ctx.font = "13px system-ui, sans-serif";
+  ctx.textAlign = "center";
+  ctx.textBaseline = "top";
+  const w = ctx.canvas.width;
+  const innerW = w - padding * 2;
+  const n = labels.length;
+  if (!n) return;
+  const step = Math.max(1, Math.floor(n / 8)); // show ~8 labels max
+  for (let i = 0; i < n; i += step) {
+    const x = padding + (i / Math.max(1, n - 1)) * innerW;
+    // small tick on X axis
+    ctx.beginPath();
+    ctx.moveTo(x, ctx.canvas.height - padding);
+    ctx.lineTo(x, ctx.canvas.height - padding + 4);
+    ctx.stroke();
+    ctx.fillText(labels[i], x, ctx.canvas.height - padding + 6);
+  }
+}
+function drawBars(ctx, values, labels) {
+  const pad = 32,
+    w = ctx.canvas.width,
+    h = ctx.canvas.height;
+  clearCanvas(ctx);
+  drawAxes(ctx, pad);
+  const max = Math.max(1, ...values);
+  const innerW = w - pad * 2,
+    innerH = h - pad * 2;
+  const niceMax = drawYTicks(ctx, max, pad);
+  const barW = Math.max(2, Math.floor(innerW / Math.max(1, values.length)));
+  values.forEach((v, i) => {
+    const x = pad + i * barW;
+    const y = pad + innerH * (1 - v / niceMax);
+    const bh = innerH * (v / niceMax);
+    ctx.fillStyle = "#7aa2ff";
+    ctx.fillRect(x + 1, y, barW - 2, bh);
+  });
+  if (labels && labels.length) drawXLabels(ctx, labels, pad);
+}
+function drawLine(ctx, values, labels) {
+  const pad = 32,
+    w = ctx.canvas.width,
+    h = ctx.canvas.height;
+  clearCanvas(ctx);
+  drawAxes(ctx, pad);
+  const finiteVals = values.filter((v) => v != null);
+  const max = Math.max(1, ...finiteVals);
+  const innerW = w - pad * 2,
+    innerH = h - pad * 2;
+  const niceMax = drawYTicks(ctx, max, pad);
+  ctx.strokeStyle = "#5ee1a7";
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  values.forEach((v, i) => {
+    const x = pad + (i / (values.length - 1 || 1)) * innerW;
+    if (v == null) {
+      return;
+    }
+    const y = pad + innerH * (1 - v / niceMax);
+    if (i === 0 || values[i - 1] == null) ctx.moveTo(x, y);
+    else ctx.lineTo(x, y);
+  });
+  ctx.stroke();
+  if (labels && labels.length) drawXLabels(ctx, labels, pad);
+}
+
+// Render analytics (KPIs + charts)
+function renderAnalytics() {
+  const data = analyticsData();
+  // KPIs
+  const toEU = (iso) =>
+    typeof formatDateEU === "function" ? formatDateEU(iso) : iso || "—";
+  const elTotal = document.getElementById("kpiTotalKg");
+  if (elTotal) elTotal.textContent = (data.totalKg || 0).toFixed(2);
+  const elCount = document.getElementById("kpiCount");
+  if (elCount) elCount.textContent = String(data.count || 0);
+  const elAvg = document.getElementById("kpiAvgKg");
+  if (elAvg) elAvg.textContent = (data.avgKg || 0).toFixed(2);
+  const elFL = document.getElementById("kpiFirstLast");
+  if (elFL)
+    elFL.textContent =
+      data.first && data.last
+        ? `${toEU(data.first)} / ${toEU(data.last)}`
+        : "—";
+  // Picker salary sum (PYG)
+  const sumPicker = (data.rows || []).reduce((s, r) => s + (r.picker_pyg || 0), 0);
+  const elPicker = document.getElementById("kpiPickerPYG");
+  if (elPicker) elPicker.textContent = toShortPYG(sumPicker);
+
+  // Charts
+  const c1 = document.getElementById("chartWeekly");
+  const c2 = document.getElementById("chartMA");
+  if (c1 && c1.getContext) {
+    const ctx1 = c1.getContext("2d");
+    const entries = Object.entries(data.buckets).sort(([a], [b]) =>
+      a.localeCompare(b)
+    );
+    const vals = entries.map(([, v]) => v);
+    const labels = entries.map(([k]) => formatAggKey(k, data.agg));
+    drawBars(ctx1, vals, labels);
+  }
+  if (c2 && c2.getContext) {
+    const ctx2 = c2.getContext("2d");
+    const dayLabels = data.days.map((d) => {
+      // show DD-MM or MM-YY occasionally; keep short
+      const [y, m, dd] = d.split("-");
+      return `${dd}-${m}`;
+    });
+    drawLine(ctx2, data.ma, dayLabels);
+  }
+}
+
+// Boot hooks for analytics
+initAnalyticsUI();
+renderAnalytics();
+
+// Re-render when new harvests arrive or language changes
+document.addEventListener("metrics:updated", () => {
+  renderAnalytics();
+});
