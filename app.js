@@ -14,6 +14,9 @@ const load = (k, d) => {
 };
 const save = (k, v) => localStorage.setItem(k, JSON.stringify(v));
 
+// Demo flag key
+K.demoSeeded = "berry.v1.demo_seeded";
+
 let harvests = load(K.harvests, []);
 let bulkActions = load(K.bulkActions, []);
 // No segmented state; radios are used instead
@@ -536,6 +539,146 @@ if (!prices) {
   save(K.prices, prices);
 }
 
+// Seed demo data if everything is empty and not seeded before
+function seedDemoDataIfEmpty() {
+  try {
+    const already = localStorage.getItem(K.demoSeeded) === "1";
+    const noHarvests = !Array.isArray(harvests) || harvests.length === 0;
+    const noActions = !Array.isArray(bulkActions) || bulkActions.length === 0;
+    const pricesEmpty = (() => {
+      if (!prices) return true;
+      let sum = 0;
+      (BERRIES || []).forEach((b) => {
+        const p = prices[b.id] || {};
+        sum +=
+          (p.fresh_PYGkg || p.fresh_eurkg || 0) +
+          (p.frozen_PYGkg || p.frozen_eurkg || 0);
+      });
+      return sum === 0;
+    })();
+    if (already || !(noHarvests && noActions && pricesEmpty)) return;
+
+    // Helpers
+    const today = todayLocalISO();
+    function isoAddDays(iso, delta) {
+      const [y, m, d] = iso.split("-").map((x) => parseInt(x, 10));
+      const dt = new Date(y, (m || 1) - 1, d || 1);
+      dt.setDate(dt.getDate() + delta);
+      const yy = dt.getFullYear();
+      const mm = String(dt.getMonth() + 1).padStart(2, "0");
+      const dd = String(dt.getDate()).padStart(2, "0");
+      return `${yy}-${mm}-${dd}`;
+    }
+    const d0 = today;
+    const d1 = isoAddDays(today, -1);
+    const d2 = isoAddDays(today, -2);
+    const d5 = isoAddDays(today, -5);
+    const d8 = isoAddDays(today, -8);
+
+    // Seed prices (PYG/kg)
+    const seedPrices = {
+      blueberries: { fresh_PYGkg: 80000, frozen_PYGkg: 70000 },
+      mulberries: { fresh_PYGkg: 60000, frozen_PYGkg: 50000 },
+      raspberries: { fresh_PYGkg: 90000, frozen_PYGkg: 80000 },
+      blackberries: { fresh_PYGkg: 85000, frozen_PYGkg: 75000 },
+    };
+    prices = prices || {};
+    (BERRIES || []).forEach((b) => {
+      const sp = seedPrices[b.id] || {
+        fresh_PYGkg: 60000,
+        frozen_PYGkg: 50000,
+      };
+      prices[b.id] = {
+        fresh_PYGkg: sp.fresh_PYGkg,
+        frozen_PYGkg: sp.frozen_PYGkg,
+      };
+    });
+    save(K.prices, prices);
+
+    // Seed harvests
+    harvests = [
+      {
+        id: crypto.randomUUID(),
+        dateISO: d8,
+        berryId: "blueberries",
+        weight_g: 1800,
+        fresh_g: 0,
+        frozen_g: 1800,
+        note: "",
+      },
+      {
+        id: crypto.randomUUID(),
+        dateISO: d5,
+        berryId: "mulberries",
+        weight_g: 2200,
+        fresh_g: 800,
+        frozen_g: 1400,
+        note: "",
+      },
+      {
+        id: crypto.randomUUID(),
+        dateISO: d2,
+        berryId: "raspberries",
+        weight_g: 1500,
+        fresh_g: 0,
+        frozen_g: 1500,
+        note: "",
+      },
+      {
+        id: crypto.randomUUID(),
+        dateISO: d1,
+        berryId: "blackberries",
+        weight_g: 1200,
+        fresh_g: 600,
+        frozen_g: 600,
+        note: "",
+      },
+      {
+        id: crypto.randomUUID(),
+        dateISO: d0,
+        berryId: "mulberries",
+        weight_g: 2000,
+        fresh_g: 0,
+        frozen_g: 2000,
+        note: "",
+      },
+      {
+        id: crypto.randomUUID(),
+        dateISO: d0,
+        berryId: "blueberries",
+        weight_g: 900,
+        fresh_g: 900,
+        frozen_g: 0,
+        note: "",
+      },
+    ];
+    save(K.harvests, harvests);
+
+    // Seed bulk actions
+    bulkActions = [
+      {
+        id: crypto.randomUUID(),
+        dateISO: d1,
+        berryId: "blueberries",
+        product: "frozen",
+        action: "remove",
+        amount_g: 500,
+      },
+      {
+        id: crypto.randomUUID(),
+        dateISO: d0,
+        berryId: "blackberries",
+        product: "fresh",
+        action: "sold",
+        amount_g: 300,
+      },
+    ];
+    save(K.bulkActions, bulkActions);
+
+    localStorage.setItem(K.demoSeeded, "1");
+  } catch {}
+}
+
 function renderPrices() {
   const tb = document.querySelector("#pricesTable tbody");
   if (!tb) return;
@@ -779,6 +922,7 @@ function exportHarvestCSV() {
   URL.revokeObjectURL(a.href);
 }
 
+seedDemoDataIfEmpty();
 initHarvestUI();
 renderHarvestTable();
 recomputeStockPills();

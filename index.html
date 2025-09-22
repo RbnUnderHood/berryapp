@@ -24,23 +24,25 @@
             data-i18n-aria="pill.frozen"
             >Frozen stock: 0 kg</span
           >
-          <div
-            class="lang-switch pillgroup"
-            role="radiogroup"
-            aria-label="Language"
-          >
-            <input type="radio" id="langEn" name="lang" value="en" checked />
-            <label for="langEn">EN</label>
-            <input type="radio" id="langDe" name="lang" value="de" />
-            <label for="langDe">DE</label>
-            <input type="radio" id="langGsw" name="lang" value="gsw" />
-            <label for="langGsw">GSW</label>
-          </div>
         </div>
       </header>
       <div class="row">
         <section class="card" id="card-harvest" aria-labelledby="h2-harvest">
-          <h2 id="h2-harvest" data-i18n="harvest.title">Harvest</h2>
+          <div class="card-head">
+            <h2 id="h2-harvest" data-i18n="harvest.title">Harvest</h2>
+            <div
+              class="lang-switch pillgroup"
+              role="radiogroup"
+              aria-label="Language"
+            >
+              <input type="radio" id="langEn" name="lang" value="en" checked />
+              <label for="langEn">EN</label>
+              <input type="radio" id="langDe" name="lang" value="de" />
+              <label for="langDe">DE</label>
+              <input type="radio" id="langGsw" name="lang" value="gsw" />
+              <label for="langGsw">GSW</label>
+            </div>
+          </div>
           <div class="grid" style="margin-bottom: 8px">
             <div class="g-4">
               <label for="harvestDate" data-i18n="harvest.date">Date</label>

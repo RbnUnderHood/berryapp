@@ -8,6 +8,22 @@
   .tr-today {
     outline: 2px solid rgba(122, 162, 255, 0.6);
   }
+
+  /* Mobile: place language switch under pills */
+  @media (max-width: 560px) {
+    .header-flex .pill-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+    .header-flex .pill-row .lang-switch {
+      order: 99;
+      flex-basis: 100%;
+      margin-left: 0;
+      margin-top: 4px;
+      justify-content: flex-start;
+    }
+  }
   .tr-yesterday {
     outline: 2px solid rgba(122, 162, 255, 0.35);
   }
@@ -187,6 +203,13 @@ h1 {
 h2 {
   font-size: 16px;
   margin: 0 0 8px;
+}
+.card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 8px;
 }
 .right {
   text-align: right;
