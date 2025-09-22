@@ -21,7 +21,7 @@
             <span class="sun">☀️</span>
           </label>
         </div>
-        <div style="text-align:center;">
+        <div style="text-align: center">
           <h1>
             Granja Suiza Berry app
             <svg
@@ -30,14 +30,19 @@
               width="20"
               height="20"
               viewBox="0 0 28 28"
-              style="vertical-align: -3px; margin-left: 6px; border-radius: 3px; display: inline-block;"
+              style="
+                vertical-align: -3px;
+                margin-left: 6px;
+                border-radius: 3px;
+                display: inline-block;
+              "
             >
               <rect width="28" height="28" fill="#D52B1E" />
               <rect x="12" y="5" width="4" height="18" fill="#ffffff" />
               <rect x="5" y="12" width="18" height="4" fill="#ffffff" />
             </svg>
           </h1>
-          <div style="font-size:0.9rem; color: var(--muted); margin-top: 2px;">
+          <div style="font-size: 0.9rem; color: var(--muted); margin-top: 2px">
             Niels/Thomas Beerli Cockpit
           </div>
         </div>
@@ -121,8 +126,15 @@
               />
             </div>
             <div class="g-3">
-              <label for="harvestPickerPYG" data-i18n="harvest.picker_pyg">Picker salary (PYG)</label>
-              <input id="harvestPickerPYG" type="text" inputmode="numeric" placeholder="e.g. 50k" />
+              <label for="harvestPickerPYG" data-i18n="harvest.picker_pyg"
+                >Picker salary (PYG)</label
+              >
+              <input
+                id="harvestPickerPYG"
+                type="text"
+                inputmode="numeric"
+                placeholder="e.g. 50k"
+              />
             </div>
           </div>
 
@@ -149,7 +161,9 @@
                   <th data-i18n="table.berry">Berry</th>
                   <th class="right" data-i18n="table.frozen_kg">Frozen (kg)</th>
                   <th class="right" data-i18n="table.fresh_kg">Fresh (kg)</th>
-                  <th class="right" data-i18n="harvest.picker_pyg">Picker salary (PYG)</th>
+                  <th class="right" data-i18n="harvest.picker_pyg">
+                    Picker salary (PYG)
+                  </th>
                 </tr>
               </thead>
               <tbody></tbody>
@@ -165,6 +179,109 @@
             >
               Export CSV (Harvests)
             </button>
+          </div>
+        </section>
+
+        <section class="card" id="card-mixer" aria-labelledby="h2-mixer">
+          <h2 id="h2-mixer" data-i18n="mixer.title">Mixer</h2>
+
+          <div class="subcard" id="mixerBox">
+            <h3 style="margin: 6px 0" data-i18n="mixer.create">
+              Create packages
+            </h3>
+            <div class="grid" style="margin-bottom: 8px">
+              <div class="g-3">
+                <label data-i18n="mixer.product">Product</label>
+                <div
+                  class="pillgroup"
+                  role="radiogroup"
+                  aria-label="Package product"
+                >
+                  <input
+                    type="radio"
+                    id="mxProdFrozen"
+                    name="mxProduct"
+                    value="frozen"
+                    checked
+                  />
+                  <label for="mxProdFrozen" data-i18n="common.frozen"
+                    >Frozen</label
+                  >
+                  <input
+                    type="radio"
+                    id="mxProdFresh"
+                    name="mxProduct"
+                    value="fresh"
+                  />
+                  <label for="mxProdFresh" data-i18n="common.fresh"
+                    >Fresh</label
+                  >
+                </div>
+              </div>
+              <div class="g-3">
+                <label for="mxSize" data-i18n="mixer.size_g"
+                  >Package size (g)</label
+                >
+                <select id="mxSize">
+                  <option value="250">250</option>
+                  <option value="500">500</option>
+                  <option value="1000">1000</option>
+                  <option value="custom" data-i18n="mixer.size_custom_option">
+                    Custom…
+                  </option>
+                </select>
+              </div>
+              <div class="g-3" id="mxSizeCustomWrap" hidden>
+                <label for="mxSizeCustom" data-i18n="mixer.size_custom_g"
+                  >Custom size (g)</label
+                >
+                <input
+                  id="mxSizeCustom"
+                  type="number"
+                  min="1"
+                  step="1"
+                  placeholder="e.g., 750"
+                  disabled
+                />
+              </div>
+              <div class="g-3">
+                <label for="mxCount" data-i18n="mixer.count">Count</label>
+                <input id="mxCount" type="number" min="1" step="1" value="1" />
+              </div>
+            </div>
+
+            <div class="grid" id="mxMixGrid" style="margin-bottom: 8px">
+              <!-- per-berry grams inputs will be built from BERRIES -->
+              <!-- Each row: <div class="g-3"><label>Berry name</label><input data-mx-berry="id" type="number" min="0" step="1"></div> -->
+            </div>
+
+            <div class="row" style="margin-bottom: 8px">
+              <div class="kpi" style="padding: 8px">
+                <div class="kpi-label" data-i18n="mixer.kpi_sum_remain">
+                  Sum / Remaining (g)
+                </div>
+                <div class="kpi-value">
+                  <span id="mxSum">0</span> / <span id="mxRemain">0</span>
+                </div>
+              </div>
+              <div class="kpi" style="padding: 8px">
+                <div class="kpi-label" data-i18n="mixer.kpi_cost_per_bag">
+                  Cost / bag (PYG)
+                </div>
+                <div class="kpi-value" id="mxCost">0</div>
+              </div>
+            </div>
+
+            <div class="row">
+              <button
+                id="btnCreatePackages"
+                type="button"
+                class="btn primary"
+                disabled
+              >
+                <span data-i18n="mixer.create_btn">Create packages</span>
+              </button>
+            </div>
           </div>
         </section>
 
@@ -205,6 +322,32 @@
               </tfoot>
             </table>
           </div>
+
+          <h3 style="margin: 6px 0" data-i18n="storage.packaged_inventory">
+            Packaged inventory
+          </h3>
+          <div class="table-scroll-10">
+            <table
+              class="table-compact"
+              id="packagedTable"
+              aria-label="Packaged inventory"
+            >
+              <thead>
+                <tr>
+                  <th data-i18n="table.date">Date</th>
+                  <th data-i18n="storage.product">Product</th>
+                  <th data-i18n="storage.size_g">Size</th>
+                  <th data-i18n="storage.mix">Mix</th>
+                  <th class="right" data-i18n="storage.count">Count</th>
+                  <th class="right" data-i18n="storage.cost_per_bag_pyg">
+                    Cost/bag (PYG)
+                  </th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+
           <!-- Bulk actions: remove/sell -->
           <div class="subcard" id="bulkActionsBox">
             <h3 style="margin: 6px 0" data-i18n="storage.bulk_title">
@@ -212,10 +355,36 @@
             </h3>
             <div class="grid" style="margin-bottom: 8px">
               <div class="g-3">
+                <label data-i18n="storage.type">Type</label>
+                <div
+                  class="pillgroup"
+                  role="radiogroup"
+                  aria-label="Action type"
+                >
+                  <input
+                    type="radio"
+                    id="stTypeBulk"
+                    name="stType"
+                    value="bulk"
+                    checked
+                  />
+                  <label for="stTypeBulk" data-i18n="storage.bulk">Bulk</label>
+                  <input
+                    type="radio"
+                    id="stTypePack"
+                    name="stType"
+                    value="packaged"
+                  />
+                  <label for="stTypePack" data-i18n="storage.packaged"
+                    >Packaged</label
+                  >
+                </div>
+              </div>
+              <div class="g-3" id="bulkRowBerry">
                 <label for="actBerry" data-i18n="storage.berry">Berry</label>
                 <select id="actBerry"></select>
               </div>
-              <div class="g-3">
+              <div class="g-3" id="bulkRowProduct">
                 <label data-i18n="storage.product">Product</label>
                 <div
                   class="pillgroup"
@@ -243,7 +412,7 @@
                   >
                 </div>
               </div>
-              <div class="g-3">
+              <div class="g-3" id="bulkRowAmount">
                 <label for="actWeight" data-i18n="storage.amount_g"
                   >Amount (g)</label
                 >
@@ -253,6 +422,22 @@
                   min="1"
                   step="1"
                   placeholder="e.g. 500"
+                />
+              </div>
+
+              <!-- Packaged fields (shown when Type=Packaged) -->
+              <div class="g-6" id="packRowSelect" hidden>
+                <label for="packSel" data-i18n="storage.package">Package</label>
+                <select id="packSel"></select>
+              </div>
+              <div class="g-2" id="packRowCount" hidden>
+                <label for="packCount" data-i18n="storage.count">Count</label>
+                <input
+                  id="packCount"
+                  type="number"
+                  min="1"
+                  step="1"
+                  value="1"
                 />
               </div>
               <div class="g-3">
@@ -439,7 +624,11 @@
                 <option value="last30" data-i18n="analytics.last30">
                   Last 30 days
                 </option>
-                <option value="thisYear" data-i18n="analytics.thisYear" selected>
+                <option
+                  value="thisYear"
+                  data-i18n="analytics.thisYear"
+                  selected
+                >
                   This year
                 </option>
               </select>
@@ -448,7 +637,9 @@
               <label for="anaAgg" data-i18n="analytics.agg">Aggregation</label>
               <select id="anaAgg">
                 <option value="week" data-i18n="analytics.week">Week</option>
-                <option value="month" data-i18n="analytics.month" selected>Month</option>
+                <option value="month" data-i18n="analytics.month" selected>
+                  Month
+                </option>
                 <option value="year" data-i18n="analytics.year">Year</option>
               </select>
             </div>
@@ -479,7 +670,9 @@
               <div class="kpi-value" id="kpiFirstLast">—</div>
             </div>
             <div class="g-3 kpi">
-              <div class="kpi-label" data-i18n="analytics.picker_cost">Picker salary (PYG)</div>
+              <div class="kpi-label" data-i18n="analytics.picker_cost">
+                Picker salary (PYG)
+              </div>
               <div class="kpi-value" id="kpiPickerPYG">0</div>
             </div>
           </div>

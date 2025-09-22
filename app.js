@@ -20,6 +20,12 @@ K.demoSeededExt = "berry.v1.demo_seeded_ext_202406";
 
 let harvests = load(K.harvests, []);
 let bulkActions = load(K.bulkActions, []);
+// Mixer/packages
+K.packages = "berry.v1.packages"; // [{id,dateISO,product,size_g,count,mix:{berryId:g}, cost_pyg_per_pkg}]
+let packages = load(K.packages, []);
+// track packaged actions (remove/sold) for counts
+K.packActions = "berry.v1.pack_actions"; // [{id,dateISO,product,size_g,mixSig,action,count,note, priceSnapshot?}]
+let packActions = load(K.packActions, []);
 // No segmented state; radios are used instead
 
 // ---- i18n ----
@@ -57,6 +63,15 @@ const I18N = {
       value_pyg: "Value (PYG)",
       days: "Days since last",
       bulk_title: "Bulk actions",
+      type: "Type",
+      bulk: "Bulk",
+      packaged: "Packaged",
+      packaged_inventory: "Packaged inventory",
+      size_g: "Size",
+      mix: "Mix",
+      count: "Count",
+      cost_per_bag_pyg: "Cost/bag (PYG)",
+      package: "Package",
       amount_g: "Amount (g)",
       product: "Product",
       action: "Action",
@@ -135,6 +150,18 @@ const I18N = {
       picker_cost: "Picker salary (PYG)",
       ma7: "7-day moving average (kg)",
     },
+    mixer: {
+      title: "Mixer",
+      create: "Create packages",
+      product: "Product",
+      size_g: "Package size (g)",
+      size_custom_g: "Custom size (g)",
+      size_custom_option: "Custom…",
+      count: "Count",
+      kpi_sum_remain: "Sum / Remaining (g)",
+      kpi_cost_per_bag: "Cost / bag (PYG)",
+      create_btn: "Create packages",
+    },
   },
   de: {
     app: { title: "Beeren-Zähler" },
@@ -169,6 +196,15 @@ const I18N = {
       value_pyg: "Wert (PYG)",
       days: "Tage seit letzter",
       bulk_title: "Lager-Aktionen",
+      type: "Typ",
+      bulk: "Bulk",
+      packaged: "Verpackt",
+      packaged_inventory: "Verpackter Bestand",
+      size_g: "Größe",
+      mix: "Mischung",
+      count: "Anzahl",
+      cost_per_bag_pyg: "Kosten/Beutel (PYG)",
+      package: "Packung",
       amount_g: "Menge (g)",
       product: "Produkt",
       action: "Aktion",
@@ -247,6 +283,18 @@ const I18N = {
       picker_cost: "Pflückerlohn (PYG)",
       ma7: "7-Tage gleitender Durchschnitt (kg)",
     },
+    mixer: {
+      title: "Mixer",
+      create: "Pakete erstellen",
+      product: "Produkt",
+      size_g: "Paketgröße (g)",
+      size_custom_g: "Eigene Größe (g)",
+      size_custom_option: "Eigene…",
+      count: "Anzahl",
+      kpi_sum_remain: "Summe / Rest (g)",
+      kpi_cost_per_bag: "Kosten / Beutel (PYG)",
+      create_btn: "Pakete erstellen",
+    },
   },
   gsw: {
     app: { title: "Beeri-Tally" },
@@ -281,6 +329,15 @@ const I18N = {
       value_pyg: "Wärt (PYG)",
       days: "Täg sit letscht",
       bulk_title: "Lager-Aktione",
+      type: "Typ",
+      bulk: "Bulk",
+      packaged: "Verpackt",
+      packaged_inventory: "Verpackti Bestand",
+      size_g: "Grössi",
+      mix: "Mischig",
+      count: "Aazahl",
+      cost_per_bag_pyg: "Choschte/Bag (PYG)",
+      package: "Päckli",
       amount_g: "Mängi (g)",
       product: "Produkt",
       action: "Aktion",
@@ -358,6 +415,18 @@ const I18N = {
       yearly_totals: "Jahrs-Summe (kg)",
       picker_cost: "Pflückerloun (PYG)",
       ma7: "7-Täg gleitende Durchschnitt (kg)",
+    },
+    mixer: {
+      title: "Mixer",
+      create: "Päckli mache",
+      product: "Produkt",
+      size_g: "Päckli-Grössi (g)",
+      size_custom_g: "Eigeni Grössi (g)",
+      size_custom_option: "Eigen…",
+      count: "Aazahl",
+      kpi_sum_remain: "Summi / Rässt (g)",
+      kpi_cost_per_bag: "Choschte / Bag (PYG)",
+      create_btn: "Päckli mache",
     },
   },
 };
@@ -495,10 +564,14 @@ function initLangSwitch() {
         // refresh analytics labels and UI
         if (typeof refreshAnalyticsFiltersLocale === "function")
           refreshAnalyticsFiltersLocale();
+        // refresh mixer labels and table
+        if (typeof refreshMixerLocale === "function") refreshMixerLocale();
         renderHarvestTable && renderHarvestTable();
         renderStorage && renderStorage();
         renderRecentActions && renderRecentActions();
         renderPrices && renderPrices();
+        populatePackageSelect && populatePackageSelect();
+        if (typeof renderMixer === "function") renderMixer();
         if (typeof renderAnalytics === "function") renderAnalytics();
       },
       { passive: true }
@@ -520,6 +593,356 @@ function initStorageUI() {
     });
     if (prev) sel.value = prev;
   }
+  // Toggle Bulk vs Packaged controls
+  const bulkBerry = document.getElementById("bulkRowBerry");
+  const bulkProd = document.getElementById("bulkRowProduct");
+  const bulkAmt = document.getElementById("bulkRowAmount");
+  const packSelWrap = document.getElementById("packRowSelect");
+  const packCntWrap = document.getElementById("packRowCount");
+  function applyTypeVisibility() {
+    const type =
+      document.querySelector('input[name="stType"]:checked')?.value || "bulk";
+    const isPack = type === "packaged";
+    if (bulkBerry) bulkBerry.hidden = isPack;
+    if (bulkProd) bulkProd.hidden = isPack;
+    if (bulkAmt) bulkAmt.hidden = isPack;
+    if (packSelWrap) packSelWrap.hidden = !isPack;
+    if (packCntWrap) packCntWrap.hidden = !isPack;
+    if (isPack && typeof populatePackageSelect === "function")
+      populatePackageSelect();
+  }
+  document.querySelectorAll('input[name="stType"]').forEach((r) => {
+    r.addEventListener("change", applyTypeVisibility);
+  });
+  applyTypeVisibility();
+}
+// ---- Mixer (packages) UI ----
+function initMixerUI() {
+  const grid = document.getElementById("mxMixGrid");
+  if (!grid) return;
+  if (grid.childElementCount === 0) {
+    (BERRIES || []).forEach((b) => {
+      const wrap = document.createElement("div");
+      wrap.className = "g-3";
+      const lab = document.createElement("label");
+      lab.textContent =
+        typeof berryLabel === "function" ? berryLabel(b.id) : b.name || b.id;
+      const inp = document.createElement("input");
+      inp.type = "number";
+      inp.min = "0";
+      inp.step = "1";
+      inp.placeholder = "0";
+      inp.setAttribute("data-mx-berry", b.id);
+      wrap.appendChild(lab);
+      wrap.appendChild(inp);
+      grid.appendChild(wrap);
+    });
+  }
+  // size custom toggle
+  const sel = document.getElementById("mxSize");
+  const custom = document.getElementById("mxSizeCustom");
+  const customWrap = document.getElementById("mxSizeCustomWrap");
+  if (sel && custom) {
+    sel.onchange = () => {
+      custom.disabled = sel.value !== "custom";
+      if (custom.disabled) custom.value = "";
+      if (customWrap) customWrap.hidden = sel.value !== "custom";
+      recomputeMixer();
+    };
+  }
+  // initialize visibility on first load
+  if (customWrap && sel) customWrap.hidden = sel.value !== "custom";
+  if (custom) custom.oninput = recomputeMixer;
+  const cnt = document.getElementById("mxCount");
+  if (cnt) cnt.oninput = recomputeMixer;
+  document
+    .querySelectorAll("#mxMixGrid input[data-mx-berry]")
+    .forEach((inp) => inp.addEventListener("input", recomputeMixer));
+  document
+    .querySelectorAll('input[name="mxProduct"]')
+    .forEach((r) => r.addEventListener("change", recomputeMixer));
+  document
+    .getElementById("btnCreatePackages")
+    ?.addEventListener("click", onCreatePackages);
+  recomputeMixer();
+}
+
+function mixerSizeG() {
+  const sel = document.getElementById("mxSize");
+  const custom = document.getElementById("mxSizeCustom");
+  if (!sel) return 0;
+  if (sel.value === "custom") return Math.max(0, Number(custom?.value || 0));
+  return Math.max(0, Number(sel.value || 0));
+}
+function mixerProduct() {
+  return (
+    document.querySelector('input[name="mxProduct"]:checked')?.value || "frozen"
+  );
+}
+function mixerMix() {
+  const map = {};
+  document
+    .querySelectorAll("#mxMixGrid input[data-mx-berry]")
+    .forEach((inp) => {
+      const g = Math.max(0, Number(inp.value || 0));
+      if (g > 0) map[inp.dataset.mxBerry] = g;
+    });
+  return map;
+}
+function gramsSum(obj) {
+  return Object.values(obj).reduce((s, x) => s + (Number(x) || 0), 0);
+}
+function recomputeMixer() {
+  const size = mixerSizeG();
+  const mix = mixerMix();
+  const sum = gramsSum(mix);
+  const remain = Math.max(0, size - sum);
+  // compute cost per bag from current prices and selected product
+  const prod = mixerProduct();
+  let cost = 0;
+  Object.keys(mix).forEach((id) => {
+    const kg = (mix[id] || 0) / 1000;
+    cost += kg * (typeof pricePYG === "function" ? pricePYG(id, prod) : 0);
+  });
+  const toShort =
+    typeof toShortPYG === "function" ? toShortPYG : (n) => n.toLocaleString();
+  const elSum = document.getElementById("mxSum");
+  const elRem = document.getElementById("mxRemain");
+  const elCost = document.getElementById("mxCost");
+  if (elSum) elSum.textContent = String(sum);
+  if (elRem) elRem.textContent = String(remain);
+  if (elCost) elCost.textContent = toShort(Math.round(cost));
+  const count = Math.max(
+    1,
+    Number(document.getElementById("mxCount")?.value || 1)
+  );
+  const btn = document.getElementById("btnCreatePackages");
+  if (btn) btn.disabled = !(size > 0 && sum === size && count >= 1);
+}
+function onCreatePackages() {
+  const size_g = mixerSizeG();
+  const mix = mixerMix();
+  const count = Math.max(
+    1,
+    Number(document.getElementById("mxCount")?.value || 1)
+  );
+  const product = mixerProduct();
+  const dateISO = todayLocalISO();
+  // compute cost snapshot per bag
+  let cost_pyg_per_pkg = 0;
+  Object.keys(mix).forEach((id) => {
+    const kg = (mix[id] || 0) / 1000;
+    cost_pyg_per_pkg +=
+      kg * (typeof pricePYG === "function" ? pricePYG(id, product) : 0);
+  });
+  cost_pyg_per_pkg = Math.round(cost_pyg_per_pkg);
+  // create package record
+  const pkg = {
+    id: crypto.randomUUID(),
+    dateISO,
+    product,
+    size_g,
+    count,
+    mix,
+    cost_pyg_per_pkg,
+  };
+  packages.push(pkg);
+  save(K.packages, packages);
+  // subtract bulk per berry (grams * count) via bulkActions with action:'pack'
+  Object.entries(mix).forEach(([berryId, gramsPerBag]) => {
+    const total_g = (gramsPerBag || 0) * count;
+    const rec = {
+      id: crypto.randomUUID(),
+      dateISO,
+      berryId,
+      product,
+      action: "pack",
+      amount_g: total_g,
+    };
+    bulkActions.push(rec);
+  });
+  save(K.bulkActions, bulkActions);
+  // clear inputs
+  document
+    .querySelectorAll("#mxMixGrid input[data-mx-berry]")
+    .forEach((inp) => (inp.value = ""));
+  const cnt = document.getElementById("mxCount");
+  if (cnt) cnt.value = "1";
+  recomputeMixer();
+  // downstream renders
+  if (typeof renderStorage === "function") renderStorage();
+  if (typeof renderMixer === "function") renderMixer();
+  if (typeof renderRecentActions === "function") renderRecentActions();
+  if (typeof renderSales === "function") renderSales();
+}
+function mixSignature(mix) {
+  const keys = Object.keys(mix || {}).sort();
+  return keys.map((k) => `${k}:${mix[k]}`).join("|");
+}
+function mixShortLabel(mix) {
+  const keys = Object.keys(mix || {}).sort();
+  return keys
+    .map(
+      (k) =>
+        `${
+          (typeof berryLabel === "function" ? berryLabel(k) : k).split(" ")[0]
+        } ${mix[k]}g`
+    )
+    .join(", ");
+}
+function renderMixer() {
+  const tb =
+    document.querySelector("#packagedTable tbody") ||
+    document.querySelector("#mixerTable tbody");
+  if (!tb) return;
+  tb.innerHTML = "";
+  const groups = {};
+  (packages || []).forEach((p) => {
+    const sig = `${p.product}|${p.size_g}|${mixSignature(p.mix)}`;
+    if (!groups[sig])
+      groups[sig] = {
+        dateISO: p.dateISO,
+        product: p.product,
+        size_g: p.size_g,
+        mix: p.mix,
+        count: 0,
+        cost: p.cost_pyg_per_pkg,
+      };
+    groups[sig].count += p.count || 1;
+    if (p.dateISO > groups[sig].dateISO) groups[sig].dateISO = p.dateISO;
+  });
+  // apply packaged actions (remove/sold) to reduce available count
+  (packActions || []).forEach((a) => {
+    const key = `${a.product}|${a.size_g}|${a.mixSig}`;
+    if (!groups[key]) return;
+    const delta = Number(a.count || 0);
+    if (!Number.isFinite(delta) || delta <= 0) return;
+    groups[key].count = Math.max(0, (groups[key].count || 0) - delta);
+    // keep latest date
+    if (a.dateISO > groups[key].dateISO) groups[key].dateISO = a.dateISO;
+  });
+
+  Object.values(groups)
+    .sort((a, b) => (a.dateISO || "").localeCompare(b.dateISO || ""))
+    .forEach((g) => {
+      const tr = document.createElement("tr");
+      const toShort =
+        typeof toShortPYG === "function"
+          ? toShortPYG
+          : (n) => n.toLocaleString();
+      tr.innerHTML = `
+        <td>${
+          typeof formatDateEU === "function"
+            ? formatDateEU(g.dateISO)
+            : g.dateISO
+        }</td>
+        <td>${g.product}</td>
+        <td>${g.size_g} g</td>
+        <td>${mixShortLabel(g.mix)}</td>
+        <td class="right">${g.count}</td>
+        <td class="right">${toShort(g.cost)}</td>`;
+      tb.appendChild(tr);
+    });
+}
+function refreshMixerLocale() {
+  const grid = document.getElementById("mxMixGrid");
+  if (!grid) return;
+  grid.querySelectorAll("input[data-mx-berry]").forEach((inp) => {
+    const id = inp.getAttribute("data-mx-berry");
+    const lab = inp.previousElementSibling;
+    if (lab && lab.tagName === "LABEL")
+      lab.textContent = typeof berryLabel === "function" ? berryLabel(id) : id;
+  });
+}
+
+// ---- Packaged actions (remove/sell packages) ----
+function populatePackageSelect() {
+  const sel = document.getElementById("packSel");
+  if (!sel) return;
+  const groups = {};
+  (packages || []).forEach((p) => {
+    const sig = `${p.product}|${p.size_g}|${mixSignature(p.mix)}`;
+    if (!groups[sig])
+      groups[sig] = {
+        product: p.product,
+        size_g: p.size_g,
+        mix: p.mix,
+        count: 0,
+      };
+    groups[sig].count += p.count || 1;
+  });
+  // subtract actions to show available
+  (packActions || []).forEach((a) => {
+    const key = `${a.product}|${a.size_g}|${a.mixSig}`;
+    if (groups[key])
+      groups[key].count = Math.max(0, groups[key].count - (a.count || 0));
+  });
+  const prev = sel.value;
+  sel.innerHTML = "";
+  Object.entries(groups)
+    .sort(([ak], [bk]) => ak.localeCompare(bk))
+    .forEach(([sig, g]) => {
+      const o = document.createElement("option");
+      o.value = sig;
+      const prod = g.product;
+      const labelMix = mixShortLabel(g.mix);
+      o.textContent = `${prod} • ${g.size_g}g • ${labelMix} — x${g.count}`;
+      sel.appendChild(o);
+    });
+  if (prev) sel.value = prev;
+}
+function onDoPackAction() {
+  const sel = document.getElementById("packSel");
+  const cntEl = document.getElementById("packCount");
+  if (!sel || !cntEl) return;
+  const sig = sel.value;
+  if (!sig) {
+    alert("Choose a package");
+    return;
+  }
+  const count = Math.max(1, Number(cntEl.value || 1));
+  const action =
+    document.querySelector('input[name="pkAction"]:checked')?.value || "remove";
+  const note = document.getElementById("packNote")?.value || "";
+  const [product, size_g_str, mixSig] = sig.split("|");
+  const size_g = Number(size_g_str);
+  // Check available
+  // Recompute available as in populatePackageSelect
+  const grouped = {};
+  (packages || []).forEach((p) => {
+    const s = `${p.product}|${p.size_g}|${mixSignature(p.mix)}`;
+    grouped[s] = (grouped[s] || 0) + (p.count || 1);
+  });
+  (packActions || []).forEach((a) => {
+    grouped[`${a.product}|${a.size_g}|${a.mixSig}`] = Math.max(
+      0,
+      (grouped[`${a.product}|${a.size_g}|${a.mixSig}`] || 0) - (a.count || 0)
+    );
+  });
+  const avail = grouped[sig] || 0;
+  if (count > avail) {
+    alert(`Only ${avail} available`);
+    return;
+  }
+  const dateISO = todayLocalISO();
+  const rec = {
+    id: crypto.randomUUID(),
+    dateISO,
+    product,
+    size_g,
+    mixSig,
+    action,
+    count,
+    note,
+  };
+  packActions.push(rec);
+  save(K.packActions, packActions);
+  document.getElementById("packCount").value = "1";
+  if (document.getElementById("packNote"))
+    document.getElementById("packNote").value = "";
+  renderMixer();
+  populatePackageSelect();
+  renderRecentActions();
 }
 // Compute storage (harvests MINUS bulkActions)
 function computeStorageByBerry() {
@@ -540,7 +963,7 @@ function computeStorageByBerry() {
     m.freshKg += (h.fresh_g || 0) / 1000;
     if (!m.lastDate || h.dateISO > m.lastDate) m.lastDate = h.dateISO;
   });
-  // apply actions (subtract amounts)
+  // apply actions (subtract amounts; includes remove, sold, pack)
   (bulkActions || []).forEach((a) => {
     const m = map[a.berryId];
     if (!m) return;
@@ -732,6 +1155,13 @@ function renderRecentActions() {
 }
 // Apply bulk action
 async function onDoBulkAction() {
+  // Route to packaged actions when Type=Packaged
+  const type =
+    document.querySelector('input[name="stType"]:checked')?.value || "bulk";
+  if (type === "packaged") {
+    onDoPackActionViaBulk();
+    return;
+  }
   const dateISO = todayLocalISO();
   const berryId = document.getElementById("actBerry").value;
   const amount_g = Number(document.getElementById("actWeight").value || 0);
@@ -764,6 +1194,60 @@ async function onDoBulkAction() {
   renderStorage();
   renderRecentActions();
   renderSales();
+}
+
+// Packaged remove/sell via Bulk actions UI
+function onDoPackActionViaBulk() {
+  const sel = document.getElementById("packSel");
+  const cntEl = document.getElementById("packCount");
+  if (!sel || !cntEl) return;
+  const sig = sel.value;
+  if (!sig) {
+    alert("Choose a package");
+    return;
+  }
+  const count = Math.max(1, Number(cntEl.value || 1));
+  const action =
+    document.querySelector('input[name="stAction"]:checked')?.value || "remove";
+  const note = document.getElementById("actNote")?.value || "";
+  const [product, size_g_str, mixSig] = sig.split("|");
+  const size_g = Number(size_g_str);
+  // availability check (similar to populatePackageSelect)
+  const grouped = {};
+  (packages || []).forEach((p) => {
+    const s = `${p.product}|${p.size_g}|${mixSignature(p.mix)}`;
+    grouped[s] = (grouped[s] || 0) + (p.count || 1);
+  });
+  (packActions || []).forEach((a) => {
+    const k = `${a.product}|${a.size_g}|${a.mixSig}`;
+    grouped[k] = Math.max(0, (grouped[k] || 0) - (a.count || 0));
+  });
+  const avail = grouped[sig] || 0;
+  if (count > avail) {
+    alert(`Only ${avail} available`);
+    return;
+  }
+  const dateISO = todayLocalISO();
+  const rec = {
+    id: crypto.randomUUID(),
+    dateISO,
+    product,
+    size_g,
+    mixSig,
+    action,
+    count,
+    note,
+  };
+  packActions.push(rec);
+  save(K.packActions, packActions);
+  // reset
+  cntEl.value = "1";
+  const n = document.getElementById("actNote");
+  if (n) n.value = "";
+  // refresh views
+  renderMixer();
+  populatePackageSelect();
+  renderRecentActions();
 }
 const BERRIES = [
   { id: "blueberries" },
@@ -1208,7 +1692,9 @@ function onAddHarvest() {
   const berryId = document.getElementById("harvestBerry").value;
   const dateISO = document.getElementById("harvestDate").value;
   const weight_g = Number(document.getElementById("harvestWeight").value || 0);
-  const picker_pyg = parsePYG(document.getElementById("harvestPickerPYG")?.value || 0);
+  const picker_pyg = parsePYG(
+    document.getElementById("harvestPickerPYG")?.value || 0
+  );
   const today = todayLocalISO();
   if (!berryId || !dateISO || weight_g <= 0) {
     alert("Fill date, berry, and a positive weight");
@@ -1329,6 +1815,11 @@ initStorageUI();
 renderStorage();
 renderRecentActions();
 renderPrices();
+// Mixer boot
+initMixerUI();
+renderMixer();
+// Packaged selector for Bulk UI
+populatePackageSelect();
 // Theme init + toggle
 applyTheme(THEME);
 document.getElementById("themeToggle")?.addEventListener("change", (e) => {
@@ -1794,7 +2285,10 @@ function renderAnalytics() {
         ? `${toEU(data.first)} / ${toEU(data.last)}`
         : "—";
   // Picker salary sum (PYG)
-  const sumPicker = (data.rows || []).reduce((s, r) => s + (r.picker_pyg || 0), 0);
+  const sumPicker = (data.rows || []).reduce(
+    (s, r) => s + (r.picker_pyg || 0),
+    0
+  );
   const elPicker = document.getElementById("kpiPickerPYG");
   if (elPicker) elPicker.textContent = toShortPYG(sumPicker);
 
@@ -1828,4 +2322,6 @@ renderAnalytics();
 // Re-render when new harvests arrive or language changes
 document.addEventListener("metrics:updated", () => {
   renderAnalytics();
+  renderMixer && renderMixer();
+  populatePackageSelect && populatePackageSelect();
 });
