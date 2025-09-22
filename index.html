@@ -1,44 +1,83 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Berry Tally</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <link rel="stylesheet" href="theme.css" />
     <script src="app.js" defer></script>
+    <title>Berry Tally</title>
   </head>
   <body>
-    <!-- noscript notice for accessibility -->
-    <noscript style="color: #c00; padding: 8px; display: block"
-      >This app needs JavaScript to run (works offline in your
-      browser).</noscript
-    >
-    <main>
-      <div class="wrap">
-        <header class="header-flex">
-          <h1>Berry Tally</h1>
-          <span class="pill">Frozen stock: 0 kg</span>
-        </header>
-        <div class="row">
-          <section class="card">
-            <h2>Add Harvest</h2>
-            <form
-              id="harvestForm"
-              autocomplete="off"
-              style="margin-bottom: 1em"
-            >
-              <select id="harvestBerry"></select>
+    <div class="wrap">
+      <header class="header-flex">
+        <h1>Berry Tally</h1>
+        <div class="pill-row">
+          <span class="pill pill--fresh" id="pillFresh">Fresh stock: 0 kg</span>
+          <span class="pill pill--frozen" id="pillFrozen"
+            >Frozen stock: 0 kg</span
+          >
+        </div>
+      </header>
+      <div class="row">
+        <section class="card" id="card-harvest" aria-labelledby="h2-harvest">
+          <h2 id="h2-harvest">Harvest</h2>
+          <div class="grid" style="margin-bottom: 8px">
+            <div class="g-4">
+              <label for="harvestDate">Date</label>
               <input id="harvestDate" type="date" />
+            </div>
+            <div class="g-4">
+              <label for="harvestBerry">Berry</label>
+              <select id="harvestBerry"></select>
+            </div>
+            <div class="g-3">
+              <label>Product</label>
+              <div
+                class="pillgroup"
+                role="radiogroup"
+                aria-label="Harvest product"
+              >
+                <input
+                  type="radio"
+                  id="hvProdFrozen"
+                  name="hvProduct"
+                  value="frozen"
+                  checked
+                />
+                <label for="hvProdFrozen">Frozen</label>
+                <input
+                  type="radio"
+                  id="hvProdFresh"
+                  name="hvProduct"
+                  value="fresh"
+                />
+                <label for="hvProdFresh">Fresh</label>
+              </div>
+            </div>
+            <div class="g-1">
+              <label for="harvestWeight">Weight (g)</label>
               <input
                 id="harvestWeight"
                 type="number"
-                min="0"
+                min="1"
                 step="1"
-                placeholder="Weight (g)"
+                placeholder="e.g. 1800"
               />
-              <button id="btnAddHarvest" type="button">Add harvest</button>
-            </form>
-            <table id="harvestTable" aria-label="Harvest entries">
+            </div>
+          </div>
+
+          <div class="row" style="margin-bottom: 8px">
+            <button id="btnAddHarvest" type="button" class="btn primary">
+              Add
+            </button>
+          </div>
+
+          <div class="table-scroll-10">
+            <table
+              class="table-compact"
+              id="harvestTable"
+              aria-label="Harvest entries"
+            >
               <thead>
                 <tr>
                   <th>Date</th>
@@ -50,18 +89,138 @@
               </thead>
               <tbody></tbody>
             </table>
-          </section>
-          <section class="card">
-            <h2>Package Builder</h2>
-          </section>
-          <section class="card">
-            <h2>Prices</h2>
-          </section>
-          <section class="card">
-            <h2>Analytics &amp; Export</h2>
-          </section>
-        </div>
+          </div>
+
+          <div class="row" style="margin-top: 8px">
+            <button id="btnExportHarvestCSV" type="button" class="btn">
+              Export CSV (Harvests)
+            </button>
+          </div>
+        </section>
+        <section class="card" id="card-storage" aria-labelledby="h2-storage">
+          <h2 id="h2-storage">Storage</h2>
+
+          <!-- Bulk stock summary -->
+          <div class="table-scroll-10" style="margin-bottom: 8px">
+            <table
+              class="table-compact"
+              id="storageTable"
+              aria-label="Storage by berry (bulk)"
+            >
+              <thead>
+                <tr>
+                  <th>Berry</th>
+                  <th class="right">Frozen (kg)</th>
+                  <th class="right">Fresh (kg)</th>
+                  <th class="right">Days since last</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+
+          <!-- Bulk actions: remove/sell -->
+          <div class="subcard" id="bulkActionsBox">
+            <h3 style="margin: 6px 0">Bulk actions</h3>
+            <div class="grid" style="margin-bottom: 8px">
+              <div class="g-3">
+                <label for="actBerry">Berry</label>
+                <select id="actBerry"></select>
+              </div>
+              <div class="g-3">
+                <label>Product</label>
+                <div
+                  class="pillgroup"
+                  role="radiogroup"
+                  aria-label="Bulk product"
+                >
+                  <input
+                    type="radio"
+                    id="stProdFrozen"
+                    name="stProduct"
+                    value="frozen"
+                    checked
+                  />
+                  <label for="stProdFrozen">Frozen</label>
+                  <input
+                    type="radio"
+                    id="stProdFresh"
+                    name="stProduct"
+                    value="fresh"
+                  />
+                  <label for="stProdFresh">Fresh</label>
+                </div>
+              </div>
+              <div class="g-3">
+                <label for="actWeight">Amount (g)</label>
+                <input
+                  id="actWeight"
+                  type="number"
+                  min="1"
+                  step="1"
+                  placeholder="e.g. 500"
+                />
+              </div>
+              <div class="g-6">
+                <label>Action</label>
+                <div
+                  class="pillgroup"
+                  role="radiogroup"
+                  aria-label="Bulk action"
+                >
+                  <input
+                    type="radio"
+                    id="stActRemove"
+                    name="stAction"
+                    value="remove"
+                    checked
+                  />
+                  <label for="stActRemove">Remove</label>
+                  <input
+                    type="radio"
+                    id="stActSold"
+                    name="stAction"
+                    value="sold"
+                  />
+                  <label for="stActSold">Sold</label>
+                </div>
+              </div>
+            </div>
+            <div class="row" style="margin-bottom: 8px">
+              <button id="btnDoBulkAction" type="button" class="btn primary">
+                Apply
+              </button>
+            </div>
+          </div>
+
+          <div class="table-scroll-10" style="margin-bottom: 8px">
+            <table
+              class="table-compact"
+              id="actionsTable"
+              aria-label="Recent bulk actions"
+            >
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Berry</th>
+                  <th>Prod</th>
+                  <th>Action</th>
+                  <th class="right">Amount (kg)</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+
+          <!-- Packaged (placeholder for later packaging module) -->
+          <h3 style="margin: 6px 0">Packaged stock (coming later)</h3>
+          <p class="muted">
+            When the package builder returns, packaged stock and sales will
+            appear here.
+          </p>
+        </section>
+        <section class="card" id="card-prices"><h2>Prices</h2></section>
       </div>
-    </main>
+    </div>
   </body>
 </html>
