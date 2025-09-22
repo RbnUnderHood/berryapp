@@ -619,3 +619,10 @@ canvas {
 .total-row td {
   border-top: 1px solid rgba(255, 255, 255, 0.08);
 }
+.auth-bar {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-top: 8px;
+}

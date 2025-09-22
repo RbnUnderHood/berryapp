@@ -1,3 +1,34 @@
+import { supabase } from "./supabase.js";
+
+window.canEdit = false;
+
+async function authInit() {
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
+  if (session?.user?.email) {
+    const email = session.user.email;
+    window.canEdit = email === "you@yourmail.com"; // <-- your editor email
+    const bar = document.getElementById("authBar");
+    if (bar) bar.style.display = "none";
+  }
+  document.getElementById("btnSignIn")?.addEventListener("click", async () => {
+    const email = document.getElementById("authEmail").value.trim();
+    if (!email) {
+      const m = document.getElementById("authMsg");
+      if (m) m.textContent = "Enter email";
+      return;
+    }
+    const { error } = await supabase.auth.signInWithOtp({
+      email,
+      options: { emailRedirectTo: location.href },
+    });
+    const m = document.getElementById("authMsg");
+    if (m) m.textContent = error ? error.message : "Check your email.";
+  });
+}
+authInit();
+
 // Berry Tally base loaded
 const $ = (s) => document.querySelector(s);
 
@@ -505,11 +536,16 @@ function populateSalesFilters() {
   // Months from sold actions
   if (monthSel) {
     const months = Array.from(
-      new Set(
-        (bulkActions || [])
+      new Set([
+        // bulk sold months
+        ...(bulkActions || [])
           .filter((a) => a.action === "sold")
-          .map((a) => (a.dateISO || "").slice(0, 7))
-      )
+          .map((a) => (a.dateISO || "").slice(0, 7)),
+        // packaged sold months
+        ...(packActions || [])
+          .filter((p) => p.action === "sold")
+          .map((p) => (p.dateISO || "").slice(0, 7)),
+      ])
     )
       .filter(Boolean)
       .sort()
@@ -534,9 +570,13 @@ function populateSalesFilters() {
     all.value = "all";
     all.setAttribute("data-i18n", "sales.berry_all");
     all.textContent = t("sales.berry_all");
+    const packaged = document.createElement("option");
+    packaged.value = "__packaged__";
+    packaged.textContent = t("storage.packaged");
     const prev = prevBerry;
     berrySel.innerHTML = "";
     berrySel.appendChild(all);
+    berrySel.appendChild(packaged);
     (BERRIES || []).forEach((b) => {
       const o = document.createElement("option");
       o.value = b.id;
@@ -790,6 +830,30 @@ function mixShortLabel(mix) {
     )
     .join(", ");
 }
+// Parse a mixSig like "blueberries:200|raspberries:300" to an object
+function parseMixSig(mixSig) {
+  const m = {};
+  if (!mixSig) return m;
+  String(mixSig)
+    .split("|")
+    .forEach((pair) => {
+      const [k, v] = String(pair).split(":");
+      const g = Number(v || 0);
+      if (k && Number.isFinite(g) && g > 0) m[k] = g;
+    });
+  return m;
+}
+// Compute price per KG for a package using current prices
+function pricePerKgForPackage(product, size_g, mixSig) {
+  const mix = parseMixSig(mixSig);
+  let perBag = 0;
+  Object.keys(mix).forEach((berryId) => {
+    const kg = (mix[berryId] || 0) / 1000;
+    perBag += kg * pricePYG(berryId, product);
+  });
+  const sizeKg = Math.max(0.000001, (Number(size_g) || 0) / 1000);
+  return perBag / sizeKg;
+}
 function renderMixer() {
   const tb =
     document.querySelector("#packagedTable tbody") ||
@@ -925,6 +989,7 @@ function onDoPackAction() {
     return;
   }
   const dateISO = todayLocalISO();
+  const pricePerKgSnapshot = pricePerKgForPackage(product, size_g, mixSig);
   const rec = {
     id: crypto.randomUUID(),
     dateISO,
@@ -934,6 +999,7 @@ function onDoPackAction() {
     action,
     count,
     note,
+    pricePerKgSnapshot,
   };
   packActions.push(rec);
   save(K.packActions, packActions);
@@ -1072,34 +1138,74 @@ function renderRecentActions() {
   const berrySel = document.getElementById("salesBerry");
   const monthVal = monthSel?.value || "all";
   const berryVal = berrySel?.value || "all";
-  // Filter actions: only sold
-  let actions = (bulkActions || []).filter((a) => a.action === "sold");
-  if (monthVal !== "all") {
-    actions = actions.filter((a) => (a.dateISO || "").slice(0, 7) === monthVal);
-  }
-  if (berryVal !== "all") {
-    actions = actions.filter((a) => a.berryId === berryVal);
-  }
+  // Merge bulk and packaged SOLD
+  const bulkSold = (bulkActions || []).filter((a) => a.action === "sold");
+  const packSold = (packActions || []).filter((p) => p.action === "sold");
+  // Apply month filter
+  const byMonth = (dateISO) =>
+    monthVal === "all" ? true : (dateISO || "").slice(0, 7) === monthVal;
+  const rows = [];
+  // Bulk rows
+  bulkSold.forEach((a) => {
+    if (!byMonth(a.dateISO)) return;
+    if (berryVal !== "all" && berryVal !== a.berryId) return;
+    const kg = (a.amount_g || 0) / 1000;
+    const price = a.priceSnapshot || pricePYG(a.berryId, a.product);
+    const value = Math.round(kg * price);
+    rows.push({
+      type: "bulk",
+      dateISO: a.dateISO,
+      berryId: a.berryId,
+      product: a.product,
+      amountKg: kg,
+      pricePerKg: price,
+      valuePYG: value,
+      note: a.note || "",
+    });
+  });
+  // Packaged rows
+  packSold.forEach((p) => {
+    if (!byMonth(p.dateISO)) return;
+    if (berryVal !== "all" && berryVal !== "__packaged__") return;
+    const kg =
+      (Math.max(0, Number(p.size_g || 0)) / 1000) *
+      Math.max(1, Number(p.count || 1));
+    const price =
+      p.pricePerKgSnapshot ||
+      pricePerKgForPackage(p.product, p.size_g, p.mixSig);
+    const value = Math.round(kg * price);
+    rows.push({
+      type: "packaged",
+      dateISO: p.dateISO,
+      berryId: "__packaged__",
+      product: p.product,
+      amountKg: kg,
+      pricePerKg: price,
+      valuePYG: value,
+      note: p.note || "",
+    });
+  });
+  // sort by date asc
+  rows.sort((a, b) => a.dateISO.localeCompare(b.dateISO));
   // Table rows
   let totKg = 0,
     totVal = 0;
-  actions.forEach((a) => {
-    const kg = (a.amount_g || 0) / 1000;
+  rows.forEach((r) => {
+    totKg += r.amountKg;
+    totVal += r.valuePYG;
     const prodLabel =
-      a.product === "fresh" ? t("common.fresh") : t("common.frozen");
-    const price = a.priceSnapshot || pricePYG(a.berryId, a.product);
-    const value = Math.round(kg * price);
-    totKg += kg;
-    totVal += value;
+      r.product === "fresh" ? t("common.fresh") : t("common.frozen");
+    const berryName =
+      r.type === "packaged" ? t("storage.packaged") : berryLabel(r.berryId);
     const tr = document.createElement("tr");
     tr.innerHTML = `
-      <td>${formatDateEU(a.dateISO)}</td>
-      <td>${berryLabel(a.berryId)}</td>
+      <td>${formatDateEU(r.dateISO)}</td>
+      <td>${berryName}</td>
       <td>${prodLabel}</td>
-      <td class="right">${kg.toFixed(2)}</td>
-      <td class="right">${toShortPYG(price)}</td>
-      <td class="right">${toShortPYG(value)}</td>
-      <td>${a.note || ""}</td>`;
+      <td class="right">${r.amountKg.toFixed(2)}</td>
+      <td class="right">${toShortPYG(r.pricePerKg)}</td>
+      <td class="right">${toShortPYG(r.valuePYG)}</td>
+      <td>${r.note}</td>`;
     tb.appendChild(tr);
   });
   // Totals
@@ -1107,15 +1213,13 @@ function renderRecentActions() {
   const totValEl = document.getElementById("salesTotVal");
   if (totKgEl) totKgEl.textContent = totKg.toFixed(2);
   if (totValEl) totValEl.textContent = toShortPYG(totVal);
-  // Summaries by month
+  // Summaries by month (bulk + packaged)
   const sumMonth = {};
-  actions.forEach((a) => {
-    const m = (a.dateISO || "").slice(0, 7);
+  rows.forEach((r) => {
+    const m = (r.dateISO || "").slice(0, 7);
     if (!sumMonth[m]) sumMonth[m] = { kg: 0, val: 0 };
-    const kg = (a.amount_g || 0) / 1000;
-    const price = a.priceSnapshot || pricePYG(a.berryId, a.product);
-    sumMonth[m].kg += kg;
-    sumMonth[m].val += Math.round(kg * price);
+    sumMonth[m].kg += r.amountKg;
+    sumMonth[m].val += r.valuePYG;
   });
   const sumMonthTb = document.querySelector("#salesSumMonth tbody");
   if (sumMonthTb) {
@@ -1130,22 +1234,21 @@ function renderRecentActions() {
       sumMonthTb.appendChild(tr);
     });
   }
-  // Summaries by berry
+  // Summaries by berry (bulk + packaged)
   const sumBerry = {};
-  actions.forEach((a) => {
-    const b = a.berryId;
-    if (!sumBerry[b]) sumBerry[b] = { kg: 0, val: 0 };
-    const kg = (a.amount_g || 0) / 1000;
-    const price = a.priceSnapshot || pricePYG(a.berryId, a.product);
-    sumBerry[b].kg += kg;
-    sumBerry[b].val += Math.round(kg * price);
+  rows.forEach((r) => {
+    const key = r.type === "packaged" ? "__packaged__" : r.berryId;
+    if (!sumBerry[key]) sumBerry[key] = { kg: 0, val: 0 };
+    sumBerry[key].kg += r.amountKg;
+    sumBerry[key].val += r.valuePYG;
   });
   const sumBerryTb = document.querySelector("#salesSumBerry tbody");
   if (sumBerryTb) {
     sumBerryTb.innerHTML = "";
     Object.entries(sumBerry).forEach(([b, v]) => {
+      const name = b === "__packaged__" ? t("storage.packaged") : berryLabel(b);
       const tr = document.createElement("tr");
-      tr.innerHTML = `<td>${berryLabel(b)}</td><td class="right">${v.kg.toFixed(
+      tr.innerHTML = `<td>${name}</td><td class="right">${v.kg.toFixed(
         2
       )}</td><td class="right">${toShortPYG(v.val)}</td>`;
       sumBerryTb.appendChild(tr);
@@ -1228,6 +1331,7 @@ function onDoPackActionViaBulk() {
     return;
   }
   const dateISO = todayLocalISO();
+  const pricePerKgSnapshot = pricePerKgForPackage(product, size_g, mixSig);
   const rec = {
     id: crypto.randomUUID(),
     dateISO,
@@ -1237,6 +1341,7 @@ function onDoPackActionViaBulk() {
     action,
     count,
     note,
+    pricePerKgSnapshot,
   };
   packActions.push(rec);
   save(K.packActions, packActions);
@@ -1541,11 +1646,83 @@ function seedExtendedDemoDataIfNeeded() {
           priceSnapshot: pricePYG(b, product),
         });
       }
+
+      // Occasionally create packaged inventory (mix of 2 berries), mostly frozen
+      if (step % 8 === 0) {
+        const product = Math.random() < 0.85 ? "frozen" : "fresh";
+        const size_g = [250, 500, 1000][
+          Math.random() < 0.6 ? 1 : Math.random() < 0.5 ? 0 : 2
+        ];
+        // pick two distinct berries
+        const b1 = pick(berries);
+        let b2 = pick(berries);
+        if (b2 === b1) b2 = pick(berries);
+        // split grams between two berries
+        const g1 = Math.floor(size_g * (Math.random() * 0.3 + 0.35)); // 35%..65%
+        const g2 = size_g - g1;
+        const count = rand(2, 6);
+        // cost per bag
+        const costPerBag = Math.round(
+          (g1 / 1000) * pricePYG(b1, product) +
+            (g2 / 1000) * pricePYG(b2, product)
+        );
+        // add package record
+        packages.push({
+          id: crypto.randomUUID(),
+          dateISO: date,
+          product,
+          size_g,
+          count,
+          mix: { [b1]: g1, [b2]: g2 },
+          cost_pyg_per_pkg: costPerBag,
+        });
+        // subtract bulk via pack actions into bulkActions
+        bulkActions.push({
+          id: crypto.randomUUID(),
+          dateISO: date,
+          berryId: b1,
+          product,
+          action: "pack",
+          amount_g: g1 * count,
+        });
+        bulkActions.push({
+          id: crypto.randomUUID(),
+          dateISO: date,
+          berryId: b2,
+          product,
+          action: "pack",
+          amount_g: g2 * count,
+        });
+        // sometimes sell some packaged units a bit later
+        if (Math.random() < 0.5) {
+          const sold = rand(1, Math.max(1, Math.floor(count * 0.5)));
+          const dateSold = isoAddDaysLocal(date, rand(0, 2));
+          const mixSig = `${b1}:${g1}|${b2}:${g2}`;
+          const pricePerKgSnapshot = pricePerKgForPackage(
+            product,
+            size_g,
+            mixSig
+          );
+          packActions.push({
+            id: crypto.randomUUID(),
+            dateISO: dateSold,
+            product,
+            size_g,
+            mixSig,
+            action: "sold",
+            count: sold,
+            note: "",
+            pricePerKgSnapshot,
+          });
+        }
+      }
       date = isoAddDaysLocal(date, 3);
       step++;
     }
     save(K.harvests, harvests);
     save(K.bulkActions, bulkActions);
+    save(K.packages, packages);
+    save(K.packActions, packActions);
     localStorage.setItem(K.demoSeededExt, "1");
   } catch {}
 }
@@ -1876,40 +2053,65 @@ function exportSalesCSV() {
   const header = [
     "record_type",
     "date",
-    "berry",
+    "item",
     "product",
     "amount_kg",
     "price_pygkg",
     "value_pyg",
     "note",
   ];
-  // Only sold actions
+  // Only sold actions (bulk + packaged)
   const monthSel = document.getElementById("salesMonth");
   const berrySel = document.getElementById("salesBerry");
   const monthVal = monthSel?.value || "all";
   const berryVal = berrySel?.value || "all";
-  let actions = (bulkActions || []).filter((a) => a.action === "sold");
-  if (monthVal !== "all") {
-    actions = actions.filter((a) => (a.dateISO || "").slice(0, 7) === monthVal);
-  }
-  if (berryVal !== "all") {
-    actions = actions.filter((a) => a.berryId === berryVal);
-  }
-  const rows = actions.map((a) => {
-    const kg = (a.amount_g || 0) / 1000;
-    const price = a.priceSnapshot || pricePYG(a.berryId, a.product);
-    const value = Math.round(kg * price);
-    return [
-      "sale",
-      formatDateEU(a.dateISO),
-      berryLabel(a.berryId),
-      a.product,
-      kg.toFixed(2),
-      toShortPYG(price),
-      toShortPYG(value),
-      a.note || "",
-    ];
-  });
+  const rows = [];
+  // Bulk
+  (bulkActions || [])
+    .filter((a) => a.action === "sold")
+    .forEach((a) => {
+      if (monthVal !== "all" && (a.dateISO || "").slice(0, 7) !== monthVal)
+        return;
+      if (berryVal !== "all" && berryVal !== a.berryId) return;
+      const kg = (a.amount_g || 0) / 1000;
+      const price = a.priceSnapshot || pricePYG(a.berryId, a.product);
+      const value = Math.round(kg * price);
+      rows.push([
+        "sale",
+        formatDateEU(a.dateISO),
+        berryLabel(a.berryId),
+        a.product,
+        kg.toFixed(2),
+        toShortPYG(price),
+        toShortPYG(value),
+        a.note || "",
+      ]);
+    });
+  // Packaged
+  (packActions || [])
+    .filter((p) => p.action === "sold")
+    .forEach((p) => {
+      if (monthVal !== "all" && (p.dateISO || "").slice(0, 7) !== monthVal)
+        return;
+      if (berryVal !== "all" && berryVal !== "__packaged__") return;
+      const kg =
+        (Math.max(0, Number(p.size_g || 0)) / 1000) *
+        Math.max(1, Number(p.count || 1));
+      const price =
+        p.pricePerKgSnapshot ||
+        pricePerKgForPackage(p.product, p.size_g, p.mixSig);
+      const value = Math.round(kg * price);
+      rows.push([
+        "sale",
+        formatDateEU(p.dateISO),
+        t("storage.packaged"),
+        p.product,
+        kg.toFixed(2),
+        toShortPYG(price),
+        toShortPYG(value),
+        p.note || "",
+      ]);
+    });
   const csv = [header, ...rows]
     .map((r) =>
       r
