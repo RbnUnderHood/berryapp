@@ -10,28 +10,48 @@
   <body>
     <div class="wrap">
       <header class="header-flex">
-        <h1>Berry Tally</h1>
+        <h1 data-i18n="app.title">Berry Tally</h1>
         <div class="pill-row">
-          <span class="pill pill--fresh" id="pillFresh">Fresh stock: 0 kg</span>
-          <span class="pill pill--frozen" id="pillFrozen"
+          <span
+            class="pill pill--fresh"
+            id="pillFresh"
+            data-i18n-aria="pill.fresh"
+            >Fresh stock: 0 kg</span
+          >
+          <span
+            class="pill pill--frozen"
+            id="pillFrozen"
+            data-i18n-aria="pill.frozen"
             >Frozen stock: 0 kg</span
           >
+          <div
+            class="lang-switch pillgroup"
+            role="radiogroup"
+            aria-label="Language"
+          >
+            <input type="radio" id="langEn" name="lang" value="en" checked />
+            <label for="langEn">EN</label>
+            <input type="radio" id="langDe" name="lang" value="de" />
+            <label for="langDe">DE</label>
+            <input type="radio" id="langGsw" name="lang" value="gsw" />
+            <label for="langGsw">GSW</label>
+          </div>
         </div>
       </header>
       <div class="row">
         <section class="card" id="card-harvest" aria-labelledby="h2-harvest">
-          <h2 id="h2-harvest">Harvest</h2>
+          <h2 id="h2-harvest" data-i18n="harvest.title">Harvest</h2>
           <div class="grid" style="margin-bottom: 8px">
             <div class="g-4">
-              <label for="harvestDate">Date</label>
+              <label for="harvestDate" data-i18n="harvest.date">Date</label>
               <input id="harvestDate" type="date" />
             </div>
             <div class="g-4">
-              <label for="harvestBerry">Berry</label>
+              <label for="harvestBerry" data-i18n="harvest.berry">Berry</label>
               <select id="harvestBerry"></select>
             </div>
             <div class="g-3">
-              <label>Product</label>
+              <label data-i18n="harvest.product">Product</label>
               <div
                 class="pillgroup"
                 role="radiogroup"
@@ -44,18 +64,22 @@
                   value="frozen"
                   checked
                 />
-                <label for="hvProdFrozen">Frozen</label>
+                <label for="hvProdFrozen" data-i18n="common.frozen"
+                  >Frozen</label
+                >
                 <input
                   type="radio"
                   id="hvProdFresh"
                   name="hvProduct"
                   value="fresh"
                 />
-                <label for="hvProdFresh">Fresh</label>
+                <label for="hvProdFresh" data-i18n="common.fresh">Fresh</label>
               </div>
             </div>
             <div class="g-1">
-              <label for="harvestWeight">Weight (g)</label>
+              <label for="harvestWeight" data-i18n="harvest.weight_g"
+                >Weight (g)</label
+              >
               <input
                 id="harvestWeight"
                 type="number"
@@ -67,7 +91,12 @@
           </div>
 
           <div class="row" style="margin-bottom: 8px">
-            <button id="btnAddHarvest" type="button" class="btn primary">
+            <button
+              id="btnAddHarvest"
+              type="button"
+              class="btn primary"
+              data-i18n="harvest.add"
+            >
               Add
             </button>
           </div>
@@ -80,11 +109,11 @@
             >
               <thead>
                 <tr>
-                  <th>Date</th>
-                  <th>Berry</th>
-                  <th class="right">Total (kg)</th>
-                  <th class="right">Frozen (kg)</th>
-                  <th class="right">Fresh (kg)</th>
+                  <th data-i18n="table.date">Date</th>
+                  <th data-i18n="table.berry">Berry</th>
+                  <th class="right" data-i18n="table.total_kg">Total (kg)</th>
+                  <th class="right" data-i18n="table.frozen_kg">Frozen (kg)</th>
+                  <th class="right" data-i18n="table.fresh_kg">Fresh (kg)</th>
                 </tr>
               </thead>
               <tbody></tbody>
@@ -92,13 +121,18 @@
           </div>
 
           <div class="row" style="margin-top: 8px">
-            <button id="btnExportHarvestCSV" type="button" class="btn">
+            <button
+              id="btnExportHarvestCSV"
+              type="button"
+              class="btn"
+              data-i18n="harvest.export"
+            >
               Export CSV (Harvests)
             </button>
           </div>
         </section>
         <section class="card" id="card-storage" aria-labelledby="h2-storage">
-          <h2 id="h2-storage">Storage</h2>
+          <h2 id="h2-storage" data-i18n="storage.title">Storage</h2>
           <div class="table-scroll-10">
             <table
               class="table-compact"
@@ -107,17 +141,23 @@
             >
               <thead>
                 <tr>
-                  <th>Berry</th>
-                  <th class="right">Frozen (kg)</th>
-                  <th class="right">Fresh (kg)</th>
-                  <th class="right">Value (PYG)</th>
-                  <th class="right">Days since last</th>
+                  <th data-i18n="storage.berry">Berry</th>
+                  <th class="right" data-i18n="storage.frozen_kg">
+                    Frozen (kg)
+                  </th>
+                  <th class="right" data-i18n="storage.fresh_kg">Fresh (kg)</th>
+                  <th class="right" data-i18n="storage.value_pyg">
+                    Value (PYG)
+                  </th>
+                  <th class="right" data-i18n="storage.days">
+                    Days since last
+                  </th>
                 </tr>
               </thead>
               <tbody></tbody>
               <tfoot>
                 <tr class="total-row">
-                  <th>Total</th>
+                  <th data-i18n="totals.total">Total</th>
                   <th class="right" id="totFrozenKg">0.00</th>
                   <th class="right" id="totFreshKg">0.00</th>
                   <th class="right" id="totValuePYG">0</th>
@@ -128,14 +168,16 @@
           </div>
           <!-- Bulk actions: remove/sell -->
           <div class="subcard" id="bulkActionsBox">
-            <h3 style="margin: 6px 0">Bulk actions</h3>
+            <h3 style="margin: 6px 0" data-i18n="storage.bulk_title">
+              Bulk actions
+            </h3>
             <div class="grid" style="margin-bottom: 8px">
               <div class="g-3">
-                <label for="actBerry">Berry</label>
+                <label for="actBerry" data-i18n="storage.berry">Berry</label>
                 <select id="actBerry"></select>
               </div>
               <div class="g-3">
-                <label>Product</label>
+                <label data-i18n="storage.product">Product</label>
                 <div
                   class="pillgroup"
                   role="radiogroup"
@@ -148,18 +190,24 @@
                     value="frozen"
                     checked
                   />
-                  <label for="stProdFrozen">Frozen</label>
+                  <label for="stProdFrozen" data-i18n="common.frozen"
+                    >Frozen</label
+                  >
                   <input
                     type="radio"
                     id="stProdFresh"
                     name="stProduct"
                     value="fresh"
                   />
-                  <label for="stProdFresh">Fresh</label>
+                  <label for="stProdFresh" data-i18n="common.fresh"
+                    >Fresh</label
+                  >
                 </div>
               </div>
               <div class="g-3">
-                <label for="actWeight">Amount (g)</label>
+                <label for="actWeight" data-i18n="storage.amount_g"
+                  >Amount (g)</label
+                >
                 <input
                   id="actWeight"
                   type="number"
@@ -169,7 +217,7 @@
                 />
               </div>
               <div class="g-3">
-                <label>Action</label>
+                <label data-i18n="storage.action">Action</label>
                 <div
                   class="pillgroup"
                   role="radiogroup"
@@ -182,26 +230,33 @@
                     value="remove"
                     checked
                   />
-                  <label for="stActRemove">Remove</label>
+                  <label for="stActRemove" data-i18n="common.remove"
+                    >Remove</label
+                  >
                   <input
                     type="radio"
                     id="stActSold"
                     name="stAction"
                     value="sold"
                   />
-                  <label for="stActSold">Sold</label>
+                  <label for="stActSold" data-i18n="common.sold">Sold</label>
                 </div>
               </div>
             </div>
             <div class="row" style="margin-bottom: 8px">
-              <button id="btnDoBulkAction" type="button" class="btn primary">
+              <button
+                id="btnDoBulkAction"
+                type="button"
+                class="btn primary"
+                data-i18n="storage.apply"
+              >
                 Apply
               </button>
             </div>
           </div>
         </section>
         <section class="card" id="card-sales" aria-labelledby="h2-sales">
-          <h2 id="h2-sales">Sales</h2>
+          <h2 id="h2-sales" data-i18n="sales.title">Sales</h2>
           <!-- Recent actions table (renamed id) -->
           <div class="table-scroll-10" style="margin-bottom: 8px">
             <table
@@ -211,11 +266,11 @@
             >
               <thead>
                 <tr>
-                  <th>Date</th>
-                  <th>Berry</th>
-                  <th>Prod</th>
-                  <th>Action</th>
-                  <th class="right">Amount (kg)</th>
+                  <th data-i18n="sales.date">Date</th>
+                  <th data-i18n="table.berry">Berry</th>
+                  <th data-i18n="sales.prod">Prod</th>
+                  <th data-i18n="sales.action">Action</th>
+                  <th class="right" data-i18n="sales.amount_kg">Amount (kg)</th>
                 </tr>
               </thead>
               <tbody></tbody>
@@ -224,8 +279,8 @@
         </section>
 
         <section class="card" id="card-prices" aria-labelledby="h2-prices">
-          <h2 id="h2-prices">Prices</h2>
-          <p class="muted">
+          <h2 id="h2-prices" data-i18n="prices.title">Prices</h2>
+          <p class="muted" data-i18n="prices.hint">
             Set current PYG/kg for bulk products. You can type “k” shorthand
             (e.g., 80k). Values round to nearest 5,000.
           </p>
@@ -237,9 +292,13 @@
             >
               <thead>
                 <tr>
-                  <th>Berry</th>
-                  <th class="right">Fresh PYG/kg</th>
-                  <th class="right">Frozen PYG/kg</th>
+                  <th data-i18n="prices.berry">Berry</th>
+                  <th class="right" data-i18n="prices.fresh_pyg">
+                    Fresh PYG/kg
+                  </th>
+                  <th class="right" data-i18n="prices.frozen_pyg">
+                    Frozen PYG/kg
+                  </th>
                 </tr>
               </thead>
               <tbody></tbody>

@@ -18,16 +18,270 @@ let harvests = load(K.harvests, []);
 let bulkActions = load(K.bulkActions, []);
 // No segmented state; radios are used instead
 
+// ---- i18n ----
+const I18N = {
+  en: {
+    app: { title: "Berry Tally" },
+    common: {
+      fresh: "Fresh",
+      frozen: "Frozen",
+      remove: "Remove",
+      sold: "Sold",
+    },
+    pill: { fresh: "Fresh stock: {v} kg", frozen: "Frozen stock: {v} kg" },
+    berries: {
+      blueberries: "Blueberries",
+      mulberries: "Mulberries",
+      raspberries: "Raspberries",
+      blackberries: "Blackberries",
+    },
+    harvest: {
+      title: "Harvest",
+      date: "Date",
+      berry: "Berry",
+      product: "Product",
+      weight_g: "Weight (g)",
+      add: "Add",
+      export: "Export CSV (Harvests)",
+    },
+    storage: {
+      title: "Storage",
+      berry: "Berry",
+      frozen_kg: "Frozen (kg)",
+      fresh_kg: "Fresh (kg)",
+      value_pyg: "Value (PYG)",
+      days: "Days since last",
+      bulk_title: "Bulk actions",
+      amount_g: "Amount (g)",
+      product: "Product",
+      action: "Action",
+      apply: "Apply",
+    },
+    sales: {
+      title: "Sales",
+      recent: "Recent actions",
+      date: "Date",
+      prod: "Prod",
+      action: "Action",
+      amount_kg: "Amount (kg)",
+    },
+    prices: {
+      title: "Prices",
+      hint: "Set current PYG/kg for bulk products. You can type “k” shorthand (e.g., 80k). Values round to nearest 5,000.",
+      berry: "Berry",
+      fresh_pyg: "Fresh PYG/kg",
+      frozen_pyg: "Frozen PYG/kg",
+    },
+    table: {
+      date: "Date",
+      berry: "Berry",
+      total_kg: "Total (kg)",
+      frozen_kg: "Frozen (kg)",
+      fresh_kg: "Fresh (kg)",
+      value_pyg: "Value (PYG)",
+    },
+    totals: { total: "Total" },
+  },
+  de: {
+    app: { title: "Beeren-Zähler" },
+    common: {
+      fresh: "Frisch",
+      frozen: "Gefroren",
+      remove: "Entfernen",
+      sold: "Verkauft",
+    },
+    pill: {
+      fresh: "Frischbestand: {v} kg",
+      frozen: "Tiefkühlbestand: {v} kg",
+    },
+    berries: {
+      blueberries: "Heidelbeeren",
+      mulberries: "Maulbeeren",
+      raspberries: "Himbeeren",
+      blackberries: "Brombeeren",
+    },
+    harvest: {
+      title: "Ernte",
+      date: "Datum",
+      berry: "Beere",
+      product: "Produkt",
+      weight_g: "Gewicht (g)",
+      add: "Hinzufügen",
+      export: "CSV exportieren (Ernten)",
+    },
+    storage: {
+      title: "Lager",
+      berry: "Beere",
+      frozen_kg: "Gefroren (kg)",
+      fresh_kg: "Frisch (kg)",
+      value_pyg: "Wert (PYG)",
+      days: "Tage seit letzter",
+      bulk_title: "Lager-Aktionen",
+      amount_g: "Menge (g)",
+      product: "Produkt",
+      action: "Aktion",
+      apply: "Anwenden",
+    },
+    sales: {
+      title: "Verkäufe",
+      recent: "Letzte Aktionen",
+      date: "Datum",
+      prod: "Prod",
+      action: "Aktion",
+      amount_kg: "Menge (kg)",
+    },
+    prices: {
+      title: "Preise",
+      hint: "Aktuelle PYG/kg für Bulk-Produkte. “k” Kurzform erlaubt (z. B. 80k). Werte runden auf 5.000.",
+      berry: "Beere",
+      fresh_pyg: "Frisch PYG/kg",
+      frozen_pyg: "Gefroren PYG/kg",
+    },
+    table: {
+      date: "Datum",
+      berry: "Beere",
+      total_kg: "Gesamt (kg)",
+      frozen_kg: "Gefroren (kg)",
+      fresh_kg: "Frisch (kg)",
+      value_pyg: "Wert (PYG)",
+    },
+    totals: { total: "Summe" },
+  },
+  gsw: {
+    app: { title: "Beeri-Tally" },
+    common: {
+      fresh: "Frisch",
+      frozen: "Gfrorn",
+      remove: "Wägneh",
+      sold: "Verchouft",
+    },
+    pill: { fresh: "Frischbestand: {v} kg", frozen: "Gfrornbestand: {v} kg" },
+    berries: {
+      blueberries: "Heidelbeeri",
+      mulberries: "Maulbeeri",
+      raspberries: "Himbeeri",
+      blackberries: "Brombeeri",
+    },
+    harvest: {
+      title: "Ernte",
+      date: "Datum",
+      berry: "Beeri",
+      product: "Produkt",
+      weight_g: "Gwicht (g)",
+      add: "Hinzuefüege",
+      export: "CSV exportiere (Ernte)",
+    },
+    storage: {
+      title: "Lager",
+      berry: "Beeri",
+      frozen_kg: "Gfrorn (kg)",
+      fresh_kg: "Frisch (kg)",
+      value_pyg: "Wärt (PYG)",
+      days: "Täg sit letscht",
+      bulk_title: "Lager-Aktione",
+      amount_g: "Mängi (g)",
+      product: "Produkt",
+      action: "Aktion",
+      apply: "Aawände",
+    },
+    sales: {
+      title: "Verchöif",
+      recent: "Letschti Aktione",
+      date: "Datum",
+      prod: "Prod",
+      action: "Aktion",
+      amount_kg: "Mängi (kg)",
+    },
+    prices: {
+      title: "Pris",
+      hint: "Setz aktuell PYG pro kg. Du chasch «k» schriibe (z. B. 80k). Wärt wird uf 5’000 grundet.",
+      berry: "Beeri",
+      fresh_pyg: "Frisch PYG/kg",
+      frozen_pyg: "Gfrorn PYG/kg",
+    },
+    table: {
+      date: "Datum",
+      berry: "Beeri",
+      total_kg: "Total (kg)",
+      frozen_kg: "Gfrorn (kg)",
+      fresh_kg: "Frisch (kg)",
+      value_pyg: "Wärt (PYG)",
+    },
+    totals: { total: "Total" },
+  },
+  // Later: add gsw: { ... } or rm: { ... }
+};
+
+K.lang = "berry.lang";
+let LANG = localStorage.getItem(K.lang) || "en";
+
+function t(path, params) {
+  const segs = path.split(".");
+  let cur = I18N[LANG] || I18N.en;
+  for (const s of segs) cur = (cur && cur[s]) ?? null;
+  let str = typeof cur === "string" ? cur : path;
+  if (params) for (const k in params) str = str.replace(`{${k}}`, params[k]);
+  return str;
+}
+
+function applyTranslations() {
+  // Document title
+  document.title = t("app.title");
+  // Simple innerText replacement
+  document.querySelectorAll("[data-i18n]").forEach((el) => {
+    el.textContent = t(el.getAttribute("data-i18n"));
+  });
+  // Pills with numbers: use data-i18n-aria + current values
+  const fresh = document.getElementById("pillFresh");
+  const frozen = document.getElementById("pillFrozen");
+  if (fresh) {
+    const v =
+      fresh.dataset.v || fresh.textContent.match(/([\d.]+)/)?.[1] || "0";
+    fresh.textContent = t("pill.fresh", { v });
+  }
+  if (frozen) {
+    const v =
+      frozen.dataset.v || frozen.textContent.match(/([\d.]+)/)?.[1] || "0";
+    frozen.textContent = t("pill.frozen", { v });
+  }
+}
+
+function initLangSwitch() {
+  const radio = document.querySelector(`input[name="lang"][value="${LANG}"]`);
+  if (radio) radio.checked = true;
+  document.querySelectorAll('input[name="lang"]').forEach((r) => {
+    r.addEventListener(
+      "change",
+      () => {
+        LANG = r.value;
+        localStorage.setItem(K.lang, LANG);
+        applyTranslations();
+        // re-render to refresh headers/labels produced in code
+        initHarvestUI && initHarvestUI();
+        initStorageUI && initStorageUI();
+        renderHarvestTable && renderHarvestTable();
+        renderStorage && renderStorage();
+        renderRecentActions && renderRecentActions();
+        renderPrices && renderPrices();
+      },
+      { passive: true }
+    );
+  });
+  applyTranslations();
+}
+
 function initStorageUI() {
   const sel = document.getElementById("actBerry");
   if (sel) {
+    const prev = sel.value;
     sel.innerHTML = "";
     (BERRIES || []).forEach((b) => {
       const o = document.createElement("option");
       o.value = b.id;
-      o.textContent = b.name;
+      o.textContent = berryLabel(b.id);
       sel.appendChild(o);
     });
+    if (prev) sel.value = prev;
   }
 }
 // Compute storage (harvests MINUS bulkActions)
@@ -57,7 +311,7 @@ function computeStorageByBerry() {
     if (a.product === "frozen") m.frozenKg = Math.max(0, m.frozenKg - kg);
     else m.freshKg = Math.max(0, m.freshKg - kg);
   });
-  const today = new Date().toISOString().slice(0, 10);
+  const today = todayLocalISO();
   // Local date (YYYY-MM-DD) to avoid timezone off-by-one
   function todayLocalISO() {
     const d = new Date();
@@ -105,10 +359,14 @@ function renderStorage() {
 
     const tr = document.createElement("tr");
     tr.innerHTML = `
-      <td>${b.name}</td>
+  <td>${berryLabel(b.id)}</td>
       <td class="right">${m.frozenKg.toFixed(2)}</td>
       <td class="right">${m.freshKg.toFixed(2)}</td>
-      <td class="right">${typeof toShortPYG === "function" ? toShortPYG(m.valuePYG) : m.valuePYG.toLocaleString()}</td>
+      <td class="right">${
+        typeof toShortPYG === "function"
+          ? toShortPYG(m.valuePYG)
+          : m.valuePYG.toLocaleString()
+      }</td>
       <td class="right">${m.daysSince}</td>`;
     tb.appendChild(tr);
   });
@@ -120,13 +378,28 @@ function renderStorage() {
   if (tfF) tfF.textContent = sumFrozen.toFixed(2);
   if (tfR) tfR.textContent = sumFresh.toFixed(2);
   if (tfV)
-    tfV.textContent = typeof toShortPYG === "function" ? toShortPYG(sumValue) : sumValue.toLocaleString();
+    tfV.textContent =
+      typeof toShortPYG === "function"
+        ? toShortPYG(sumValue)
+        : sumValue.toLocaleString();
 
   // update header pills if present (by kg)
   const f = document.getElementById("pillFresh");
-  if (f) f.textContent = `Fresh stock: ${sumFresh.toFixed(2)} kg`;
+  if (f) {
+    const v = sumFresh.toFixed(2);
+    f.dataset.v = v;
+    f.textContent =
+      typeof t === "function" ? t("pill.fresh", { v }) : `Fresh stock: ${v} kg`;
+  }
   const z = document.getElementById("pillFrozen");
-  if (z) z.textContent = `Frozen stock: ${sumFrozen.toFixed(2)} kg`;
+  if (z) {
+    const v = sumFrozen.toFixed(2);
+    z.dataset.v = v;
+    z.textContent =
+      typeof t === "function"
+        ? t("pill.frozen", { v })
+        : `Frozen stock: ${v} kg`;
+  }
 }
 
 function renderRecentActions() {
@@ -140,12 +413,16 @@ function renderRecentActions() {
     .slice(0, 10)
     .forEach((a) => {
       const kg = (a.amount_g || 0) / 1000;
+      const prodLabel =
+        a.product === "fresh" ? t("common.fresh") : t("common.frozen");
+      const actLabel =
+        a.action === "sold" ? t("common.sold") : t("common.remove");
       const tr = document.createElement("tr");
       tr.innerHTML = `
       <td>${formatDateEU(a.dateISO)}</td>
-      <td>${BERRIES.find((b) => b.id === a.berryId)?.name || a.berryId}</td>
-      <td>${a.product}</td>
-      <td>${a.action}</td>
+  <td>${berryLabel(a.berryId)}</td>
+      <td>${prodLabel}</td>
+      <td>${actLabel}</td>
   <td class="right">${kg.toFixed(2)}</td>`;
       tb.appendChild(tr);
     });
@@ -180,12 +457,16 @@ async function onDoBulkAction() {
   renderRecentActions();
 }
 const BERRIES = [
-  { id: "blueberries", name: "Blueberries" },
-  { id: "mulberries", name: "Mulberries" },
-  { id: "raspberries", name: "Raspberries" },
-  { id: "blackberries", name: "Blackberries" },
+  { id: "blueberries" },
+  { id: "mulberries" },
+  { id: "raspberries" },
+  { id: "blackberries" },
 ];
-const berryName = (id) => BERRIES.find((b) => b.id === id)?.name || id;
+function berryLabel(id) {
+  const key = `berries.${id}`;
+  const label = typeof t === "function" ? t(key) : null;
+  return label && label !== key ? label : id;
+}
 
 // Local date (YYYY-MM-DD) to avoid timezone off-by-one
 function todayLocalISO() {
@@ -291,7 +572,7 @@ function renderPrices() {
     }
     prices[b.id] = norm;
     row.innerHTML = `
-      <td>${b.name}</td>
+      <td>${berryLabel(b.id)}</td>
       <td class="right">
         <input type="text" inputmode="numeric" data-price="${
           b.id
@@ -350,7 +631,7 @@ function initHarvestUI() {
     BERRIES.forEach((b) => {
       const o = document.createElement("option");
       o.value = b.id;
-      o.textContent = b.name;
+      o.textContent = berryLabel(b.id);
       sel.appendChild(o);
     });
   }
@@ -377,8 +658,20 @@ function recomputeStockPills() {
   );
   const f = document.getElementById("pillFresh");
   const z = document.getElementById("pillFrozen");
-  if (f) f.textContent = `Fresh stock: ${sumFreshKg.toFixed(2)} kg`;
-  if (z) z.textContent = `Frozen stock: ${sumFrozenKg.toFixed(2)} kg`;
+  if (f) {
+    const v = sumFreshKg.toFixed(2);
+    f.dataset.v = v;
+    f.textContent =
+      typeof t === "function" ? t("pill.fresh", { v }) : `Fresh stock: ${v} kg`;
+  }
+  if (z) {
+    const v = sumFrozenKg.toFixed(2);
+    z.dataset.v = v;
+    z.textContent =
+      typeof t === "function"
+        ? t("pill.frozen", { v })
+        : `Frozen stock: ${v} kg`;
+  }
 }
 
 function onAddHarvest() {
@@ -419,14 +712,27 @@ function renderHarvestTable() {
   const tb = document.querySelector("#harvestTable tbody");
   if (!tb) return;
   tb.innerHTML = "";
+  function dayDiffFromToday(dateISO) {
+    const d0 = new Date();
+    d0.setHours(0, 0, 0, 0);
+    const d1 = new Date(dateISO + "T00:00:00");
+    return Math.round((d0 - d1) / (1000 * 60 * 60 * 24));
+  }
   harvests
     .slice()
     .sort((a, b) => a.dateISO.localeCompare(b.dateISO))
     .forEach((h) => {
+      const diff = dayDiffFromToday(h.dateISO);
+      const cls = diff === 0 ? "tr-today" : diff === 1 ? "tr-yesterday" : "";
       const tr = document.createElement("tr");
+      if (cls) tr.className = cls;
       tr.innerHTML = `
-        <td>${formatDateEU(h.dateISO)}</td>
-				<td>${berryName(h.berryId)}</td>
+        <td>${
+          typeof formatDateEU === "function"
+            ? formatDateEU(h.dateISO)
+            : h.dateISO
+        }</td>
+                <td>${berryLabel(h.berryId)}</td>
 				<td class="right">${(h.weight_g / 1000).toFixed(2)}</td>
 				<td class="right">${((h.frozen_g || 0) / 1000).toFixed(2)}</td>
 				<td class="right">${((h.fresh_g || 0) / 1000).toFixed(2)}</td>`;
@@ -447,7 +753,7 @@ function exportHarvestCSV() {
   const rows = harvests.map((h) => [
     "harvest",
     formatDateEU(h.dateISO),
-    BERRIES.find((b) => b.id === h.berryId)?.name || h.berryId,
+    berryLabel(h.berryId),
     h.weight_g,
     h.fresh_g || 0,
     h.frozen_g || 0,
@@ -481,6 +787,7 @@ initStorageUI();
 renderStorage();
 renderRecentActions();
 renderPrices();
+initLangSwitch();
 document.getElementById("btnAddHarvest")?.addEventListener("click", () => {
   onAddHarvest();
   renderStorage();

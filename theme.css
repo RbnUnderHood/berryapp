@@ -1,3 +1,17 @@
+.tr-today {
+  background: rgba(122, 162, 255, 0.1);
+}
+.tr-yesterday {
+  background: rgba(122, 162, 255, 0.06);
+}
+@media (prefers-contrast: more) {
+  .tr-today {
+    outline: 2px solid rgba(122, 162, 255, 0.6);
+  }
+  .tr-yesterday {
+    outline: 2px solid rgba(122, 162, 255, 0.35);
+  }
+}
 /* Friendlier form controls and tighter segmented pill */
 :root {
   /* control sizing tokens (desktop defaults) */
@@ -250,6 +264,11 @@ h2 {
   color: var(--accent);
 }
 
+/* Language switch alignment */
+.lang-switch {
+  margin-left: 8px;
+}
+
 /* make header lighter + rounded */
 .table-compact {
   border-collapse: separate; /* allow rounded corners */
@@ -394,5 +413,10 @@ h2 {
 }
 
 /* Totals row styling */
-.total-row th { font-weight: 600; }
-.total-row th, .total-row td { border-top: 1px solid rgba(255, 255, 255, 0.08); }
+.total-row th {
+  font-weight: 600;
+}
+.total-row th,
+.total-row td {
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
