@@ -1,6 +1,29 @@
 // Berry Tally base loaded
 const $ = (s) => document.querySelector(s);
 
+// Key names for localStorage (declare early so other code can use K safely)
+const K = {
+  harvests: "berry.v1.harvests",
+  bulkActions: "berry.v1.bulk_actions",
+  packages: "berry.v1.packages",
+  packActions: "berry.v1.pack_actions",
+  prices: "berry.v1.prices",
+  demoSeeded: "berry.v1.demo_seeded",
+  demoSeededExt: "berry.v1.demo_seeded_ext_202406",
+  lang: "berry.lang",
+  theme: "berry.v1.theme",
+  dataVersion: "berry.v1.data_version",
+};
+
+const load = (k, d) => {
+  try {
+    return JSON.parse(localStorage.getItem(k)) ?? d;
+  } catch {
+    return d;
+  }
+};
+const save = (k, v) => localStorage.setItem(k, JSON.stringify(v));
+
 // ---- Data versioning & backup ----
 // Increment when we change data format; add a migration as needed
 const DATA_VERSION = 1;
@@ -97,31 +120,11 @@ async function importBackupFromFile(file) {
     console.error(e);
   }
 }
-
-const K = {
-  harvests: "berry.v1.harvests",
-  bulkActions: "berry.v1.bulk_actions", // [{id,dateISO,berryId,product:'fresh'|'frozen',action:'remove'|'sold',amount_g}]
-};
-const load = (k, d) => {
-  try {
-    return JSON.parse(localStorage.getItem(k)) ?? d;
-  } catch {
-    return d;
-  }
-};
-const save = (k, v) => localStorage.setItem(k, JSON.stringify(v));
-
-// Demo flag key
-K.demoSeeded = "berry.v1.demo_seeded";
-K.demoSeededExt = "berry.v1.demo_seeded_ext_202406";
-
 let harvests = load(K.harvests, []);
 let bulkActions = load(K.bulkActions, []);
 // Mixer/packages
-K.packages = "berry.v1.packages"; // [{id,dateISO,product,size_g,count,mix:{berryId:g}, cost_pyg_per_pkg}]
 let packages = load(K.packages, []);
 // track packaged actions (remove/sold) for counts
-K.packActions = "berry.v1.pack_actions"; // [{id,dateISO,product,size_g,mixSig,action,count,note, priceSnapshot?}]
 let packActions = load(K.packActions, []);
 // No segmented state; radios are used instead
 
@@ -546,9 +549,7 @@ const I18N = {
   },
 };
 
-K.lang = "berry.lang";
 let LANG = localStorage.getItem(K.lang) || "gsw";
-K.theme = "berry.v1.theme";
 let THEME = localStorage.getItem(K.theme) || "dark";
 
 function t(path, params) {
