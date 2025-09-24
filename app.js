@@ -1,6 +1,100 @@
 // Berry Tally base loaded
 const $ = (s) => document.querySelector(s);
 
+// ---- Data versioning & backup ----
+// Increment when we change data format; add a migration as needed
+const DATA_VERSION = 1;
+K.dataVersion = "berry.v1.data_version";
+
+function ensureDataVersionAndMigrate() {
+  try {
+    const cur = Number(localStorage.getItem(K.dataVersion) || 0);
+    if (!Number.isFinite(cur) || cur === DATA_VERSION) return;
+    // Placeholder for future migrations
+    // if (cur < 1) { /* migrate keys/shape if needed */ }
+    localStorage.setItem(K.dataVersion, String(DATA_VERSION));
+  } catch {}
+}
+
+function exportBackupBlob() {
+  const payload = {
+    meta: {
+      app: "berryapp",
+      version: DATA_VERSION,
+      exportedAt: new Date().toISOString(),
+    },
+    data: {
+      harvests,
+      bulkActions,
+      packages,
+      packActions,
+      prices,
+      lang: LANG,
+      theme: THEME,
+    },
+  };
+  const json = JSON.stringify(payload, null, 2);
+  return new Blob([json], { type: "application/json;charset=utf-8;" });
+}
+
+function downloadBackup() {
+  try {
+    const blob = exportBackupBlob();
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    const dt = new Date();
+    const ts = `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, "0")}-${String(dt.getDate()).padStart(2, "0")}`;
+    a.download = `berryapp-backup-${ts}.json`;
+    a.click();
+    URL.revokeObjectURL(a.href);
+  } catch (e) {
+    alert("Backup export failed");
+    console.error(e);
+  }
+}
+
+async function importBackupFromFile(file) {
+  if (!file) return;
+  try {
+    const txt = await file.text();
+    const payload = JSON.parse(txt);
+    if (!payload || !payload.data) throw new Error("Invalid backup file");
+    const d = payload.data;
+    // Basic validation of arrays/objects
+    harvests = Array.isArray(d.harvests) ? d.harvests : [];
+    bulkActions = Array.isArray(d.bulkActions) ? d.bulkActions : [];
+    packages = Array.isArray(d.packages) ? d.packages : [];
+    packActions = Array.isArray(d.packActions) ? d.packActions : [];
+    prices = typeof d.prices === "object" && d.prices ? d.prices : prices;
+    // Persist
+    save(K.harvests, harvests);
+    save(K.bulkActions, bulkActions);
+    save(K.packages, packages);
+    save(K.packActions, packActions);
+    save(K.prices, prices);
+    // Optional: restore prefs
+    if (d.lang) {
+      LANG = d.lang;
+      localStorage.setItem(K.lang, LANG);
+    }
+    if (d.theme) applyTheme(d.theme);
+    // Re-render
+    renderHarvestTable && renderHarvestTable();
+    renderStorage && renderStorage();
+    renderRecentActions && renderRecentActions();
+    renderSales && renderSales();
+    renderPrices && renderPrices();
+    populatePackageSelect && populatePackageSelect();
+    renderMixer && renderMixer();
+    renderAnalytics && renderAnalytics();
+    applyTranslations && applyTranslations();
+    alert("Backup imported successfully");
+  } catch (e) {
+    alert("Backup import failed");
+    console.error(e);
+  }
+}
+
 const K = {
   harvests: "berry.v1.harvests",
   bulkActions: "berry.v1.bulk_actions", // [{id,dateISO,berryId,product:'fresh'|'frozen',action:'remove'|'sold',amount_g}]
@@ -32,6 +126,13 @@ let packActions = load(K.packActions, []);
 const I18N = {
   en: {
     app: { title: "Berry Tally" },
+    backup: {
+      title: "Backup & Restore",
+      hint:
+        "Your data is saved in your browser (localStorage). Export a backup before switching devices or clearing browser data.",
+      export_btn: "Export backup (.json)",
+      import_btn: "Import backup",
+    },
     common: {
       fresh: "Fresh",
       frozen: "Frozen",
@@ -165,6 +266,13 @@ const I18N = {
   },
   de: {
     app: { title: "Beeren-Zähler" },
+    backup: {
+      title: "Backup & Wiederherstellung",
+      hint:
+        "Deine Daten werden im Browser (localStorage) gespeichert. Exportiere ein Backup, bevor du das Gerät wechselst oder Browserdaten löschst.",
+      export_btn: "Backup exportieren (.json)",
+      import_btn: "Backup importieren",
+    },
     common: {
       fresh: "Frisch",
       frozen: "Gefroren",
@@ -298,6 +406,13 @@ const I18N = {
   },
   gsw: {
     app: { title: "Beeri-Tally" },
+    backup: {
+      title: "Sicherig & Wiederherstellig",
+      hint:
+        "Dyni Date sind im Browser (localStorage). Exportier e Sicherig, wänn du s Gerät wächslesch oder Browserdate löschesch.",
+      export_btn: "Sicherig exportiere (.json)",
+      import_btn: "Sicherig importiere",
+    },
     common: {
       fresh: "Frisch",
       frozen: "Gfrorn",
@@ -1805,6 +1920,9 @@ function exportHarvestCSV() {
   URL.revokeObjectURL(a.href);
 }
 
+// Ensure data version key exists
+try { if (!localStorage.getItem(K.dataVersion)) localStorage.setItem(K.dataVersion, String(DATA_VERSION)); } catch {}
+ensureDataVersionAndMigrate();
 seedDemoDataIfEmpty();
 // Ensure prices initialized (renderPrices also normalizes); then extend demo
 initHarvestUI();
@@ -1828,6 +1946,14 @@ document.getElementById("themeToggle")?.addEventListener("change", (e) => {
 });
 seedExtendedDemoDataIfNeeded();
 initLangSwitch();
+// Backup & Restore buttons
+document.getElementById("btnExportBackup")?.addEventListener("click", downloadBackup);
+document.getElementById("btnImportBackup")?.addEventListener("click", async () => {
+  const inp = document.getElementById("fileImportBackup");
+  const file = inp?.files?.[0];
+  if (!file) { alert("Choose a backup file first"); return; }
+  await importBackupFromFile(file);
+});
 document.getElementById("btnAddHarvest")?.addEventListener("click", () => {
   onAddHarvest();
   renderStorage();
