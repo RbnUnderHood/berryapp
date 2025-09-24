@@ -129,13 +129,17 @@
               <label for="harvestWeight" data-i18n="harvest.weight_kg"
                 >Weight (kg)</label
               >
-              <input
-                id="harvestWeight"
-                type="number"
-                min="0.1"
-                step="0.1"
-                placeholder="e.g., 1.8"
-              />
+              <div class="input-with-suffix">
+                <input
+                  id="harvestWeight"
+                  type="number"
+                  inputmode="decimal"
+                  min="0.1"
+                  step="0.1"
+                  placeholder="e.g., 1.8"
+                />
+                <span class="input-suffix">kg</span>
+              </div>
             </div>
             <div class="g-3">
               <label for="harvestPickerPYG" data-i18n="harvest.picker_pyg"

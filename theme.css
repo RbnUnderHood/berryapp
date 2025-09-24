@@ -59,6 +59,26 @@ select {
   color: var(--text);
   outline: none;
 }
+/* input with suffix (e.g., kg) */
+.input-with-suffix {
+  position: relative;
+}
+.input-with-suffix input[type="number"] {
+  padding-right: 42px; /* space for suffix */
+}
+.input-with-suffix .input-suffix {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: #2a3144;
+  border: 1px solid #39415b;
+  color: var(--muted);
+  border-radius: 999px;
+  padding: 2px 8px;
+  font-size: 0.85rem;
+  pointer-events: none;
+}
 input::placeholder {
   color: #7f8aa0;
 }
