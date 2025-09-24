@@ -256,6 +256,12 @@ h3 {
   max-height: calc(var(--row-h) * 10 + 2px);
   overflow: auto;
 }
+
+/* Ensure horizontal scroll is available on small screens */
+.table-scroll-x {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
 /* Zebra rows and lighter table body in dark mode */
 .table-compact tbody td {
   border-top: 1px solid rgba(255, 255, 255, 0.04);

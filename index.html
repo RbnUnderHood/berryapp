@@ -7,11 +7,11 @@
       (function () {
         try {
           var t =
-            localStorage.getItem('berry.v1.theme') ||
-            localStorage.getItem('berry.theme') ||
-            'dark';
-          t = String(t).toLowerCase().startsWith('light') ? 'light' : 'dark';
-          document.documentElement.setAttribute('data-theme', t);
+            localStorage.getItem("berry.v1.theme") ||
+            localStorage.getItem("berry.theme") ||
+            "dark";
+          t = String(t).toLowerCase().startsWith("light") ? "light" : "dark";
+          document.documentElement.setAttribute("data-theme", t);
         } catch (e) {}
       })();
     </script>
@@ -161,11 +161,12 @@
             </button>
           </div>
 
-          <div class="table-scroll-10">
+          <div class="table-scroll-x table-scroll-10">
             <table
               class="table-compact"
               id="harvestTable"
               aria-label="Harvest entries"
+              style="min-width: 640px"
             >
               <thead>
                 <tr>
@@ -176,6 +177,7 @@
                   <th class="right" data-i18n="harvest.picker_pyg">
                     Picker salary (PYG)
                   </th>
+                  <th class="right" data-i18n="table.actions">Actions</th>
                 </tr>
               </thead>
               <tbody></tbody>

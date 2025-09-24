@@ -211,6 +211,7 @@ const I18N = {
     table: {
       date: "Date",
       berry: "Berry",
+      actions: "Actions",
       total_kg: "Total (kg)",
       frozen_kg: "Frozen (kg)",
       fresh_kg: "Fresh (kg)",
@@ -267,6 +268,10 @@ const I18N = {
       kpi_sum_remain: "Sum / Remaining (g)",
       kpi_cost_per_bag: "Cost / bag (PYG)",
       create_btn: "Create packages",
+    },
+    ui: {
+      delete: "Delete",
+      confirm_delete: "Delete this entry?",
     },
   },
   de: {
@@ -350,6 +355,7 @@ const I18N = {
     table: {
       date: "Datum",
       berry: "Beere",
+      actions: "Aktionen",
       total_kg: "Gesamt (kg)",
       frozen_kg: "Gefroren (kg)",
       fresh_kg: "Frisch (kg)",
@@ -406,6 +412,10 @@ const I18N = {
       kpi_sum_remain: "Summe / Rest (g)",
       kpi_cost_per_bag: "Kosten / Beutel (PYG)",
       create_btn: "Pakete erstellen",
+    },
+    ui: {
+      delete: "Löschen",
+      confirm_delete: "Diesen Eintrag löschen?",
     },
   },
   gsw: {
@@ -489,6 +499,7 @@ const I18N = {
     table: {
       date: "Datum",
       berry: "Beeri",
+      actions: "Aktione",
       total_kg: "Total (kg)",
       frozen_kg: "Gfrorn (kg)",
       fresh_kg: "Frisch (kg)",
@@ -545,6 +556,10 @@ const I18N = {
       kpi_sum_remain: "Summi / Rässt (g)",
       kpi_cost_per_bag: "Choschte / Bag (PYG)",
       create_btn: "Päckli mache",
+    },
+    ui: {
+      delete: "Wägneh",
+      confirm_delete: "Däne Iitrag wägneh?",
     },
   },
 };
@@ -1875,9 +1890,31 @@ function renderHarvestTable() {
                   typeof toShortPYG === "function"
                     ? toShortPYG(h.picker_pyg || 0)
                     : String(h.picker_pyg || 0)
-                }</td>`;
+                }</td>
+                <td class="right">
+                  <button class="btn" data-del-harvest="${h.id}">${t("ui.delete")}</button>
+                </td>`;
       tb.appendChild(tr);
     });
+
+  // Bind delete buttons (event delegation is fine, but we’ll add listeners here for clarity)
+  tb.querySelectorAll('button[data-del-harvest]')?.forEach((btn) => {
+    btn.addEventListener('click', (e) => {
+      const id = btn.getAttribute('data-del-harvest');
+      if (!id) return;
+      if (!confirm(t('ui.confirm_delete'))) return;
+      const idx = harvests.findIndex((h) => h.id === id);
+      if (idx >= 0) {
+        harvests.splice(idx, 1);
+        save(K.harvests, harvests);
+        renderHarvestTable();
+        recomputeStockPills();
+        renderStorage && renderStorage();
+        renderRecentActions && renderRecentActions();
+        if (typeof renderAnalytics === 'function') renderAnalytics();
+      }
+    });
+  });
 }
 
 function exportHarvestCSV() {
