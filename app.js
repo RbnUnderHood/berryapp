@@ -1828,8 +1828,12 @@ function onAddHarvest() {
   const berryId = document.getElementById("harvestBerry").value;
   const dateISO = document.getElementById("harvestDate").value;
   // read kilograms with one decimal and convert to grams (round to nearest gram)
-  const weight_kg_input = Number(document.getElementById("harvestWeight").value || 0);
-  const weight_g = Math.round((Number.isFinite(weight_kg_input) ? weight_kg_input : 0) * 1000);
+  const weight_kg_input = Number(
+    document.getElementById("harvestWeight").value || 0
+  );
+  const weight_g = Math.round(
+    (Number.isFinite(weight_kg_input) ? weight_kg_input : 0) * 1000
+  );
   const picker_pyg = parsePYG(
     document.getElementById("harvestPickerPYG")?.value || 0
   );
