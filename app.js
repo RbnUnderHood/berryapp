@@ -1944,8 +1944,11 @@ renderMixer();
 populatePackageSelect();
 // Theme init + toggle
 applyTheme(THEME);
+const themeT = document.getElementById("themeToggle");
+if (themeT) themeT.checked = THEME === "light";
 document.getElementById("themeToggle")?.addEventListener("change", (e) => {
-  const isLight = e.target.checked;
+  const tgt = e.currentTarget || e.target;
+  const isLight = !!tgt?.checked;
   applyTheme(isLight ? "light" : "dark");
 });
 seedExtendedDemoDataIfNeeded();

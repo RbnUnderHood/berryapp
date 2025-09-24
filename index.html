@@ -3,6 +3,18 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <script>
+      (function () {
+        try {
+          var t =
+            localStorage.getItem('berry.v1.theme') ||
+            localStorage.getItem('berry.theme') ||
+            'dark';
+          t = String(t).toLowerCase().startsWith('light') ? 'light' : 'dark';
+          document.documentElement.setAttribute('data-theme', t);
+        } catch (e) {}
+      })();
+    </script>
     <link rel="stylesheet" href="theme.css" />
     <script src="app.js" defer></script>
     <title>Berry Tally</title>
