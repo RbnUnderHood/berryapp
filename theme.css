@@ -237,7 +237,8 @@ h3 {
   gap: 8px;
   /* pull to card edges (matches --card-pad) */
   margin: calc(-1 * var(--card-pad)) calc(-1 * var(--card-pad)) 12px;
-  padding: 10px 14px;
+  /* ensure header padding doesn't exceed card padding to prevent overflow */
+  padding: 10px var(--card-pad);
   background: #24304a; /* lighter blue tone */
   border-top-left-radius: var(--radius);
   border-top-right-radius: var(--radius);
@@ -356,12 +357,20 @@ h3 {
   display: flex;
   gap: 8px;
   align-items: center;
+  flex-wrap: wrap; /* allow pills to wrap on narrow screens */
 }
 .pill--fresh {
   color: var(--accent-2);
 }
 .pill--frozen {
   color: var(--accent);
+}
+/* allow long localized words to break inside pill without causing overflow */
+.pill {
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  max-width: 100%;
 }
 
 /* Language switch alignment */
