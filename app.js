@@ -43,7 +43,10 @@ function downloadBackup() {
     const a = document.createElement("a");
     a.href = URL.createObjectURL(blob);
     const dt = new Date();
-    const ts = `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, "0")}-${String(dt.getDate()).padStart(2, "0")}`;
+    const ts = `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(
+      2,
+      "0"
+    )}-${String(dt.getDate()).padStart(2, "0")}`;
     a.download = `berryapp-backup-${ts}.json`;
     a.click();
     URL.revokeObjectURL(a.href);
@@ -128,8 +131,7 @@ const I18N = {
     app: { title: "Berry Tally" },
     backup: {
       title: "Backup & Restore",
-      hint:
-        "Your data is saved in your browser (localStorage). Export a backup before switching devices or clearing browser data.",
+      hint: "Your data is saved in your browser (localStorage). Export a backup before switching devices or clearing browser data.",
       export_btn: "Export backup (.json)",
       import_btn: "Import backup",
     },
@@ -268,8 +270,7 @@ const I18N = {
     app: { title: "Beeren-Zähler" },
     backup: {
       title: "Backup & Wiederherstellung",
-      hint:
-        "Deine Daten werden im Browser (localStorage) gespeichert. Exportiere ein Backup, bevor du das Gerät wechselst oder Browserdaten löschst.",
+      hint: "Deine Daten werden im Browser (localStorage) gespeichert. Exportiere ein Backup, bevor du das Gerät wechselst oder Browserdaten löschst.",
       export_btn: "Backup exportieren (.json)",
       import_btn: "Backup importieren",
     },
@@ -408,8 +409,7 @@ const I18N = {
     app: { title: "Beeri-Tally" },
     backup: {
       title: "Sicherig & Wiederherstellig",
-      hint:
-        "Dyni Date sind im Browser (localStorage). Exportier e Sicherig, wänn du s Gerät wächslesch oder Browserdate löschesch.",
+      hint: "Dyni Date sind im Browser (localStorage). Exportier e Sicherig, wänn du s Gerät wächslesch oder Browserdate löschesch.",
       export_btn: "Sicherig exportiere (.json)",
       import_btn: "Sicherig importiere",
     },
@@ -1921,7 +1921,10 @@ function exportHarvestCSV() {
 }
 
 // Ensure data version key exists
-try { if (!localStorage.getItem(K.dataVersion)) localStorage.setItem(K.dataVersion, String(DATA_VERSION)); } catch {}
+try {
+  if (!localStorage.getItem(K.dataVersion))
+    localStorage.setItem(K.dataVersion, String(DATA_VERSION));
+} catch {}
 ensureDataVersionAndMigrate();
 seedDemoDataIfEmpty();
 // Ensure prices initialized (renderPrices also normalizes); then extend demo
@@ -1947,13 +1950,20 @@ document.getElementById("themeToggle")?.addEventListener("change", (e) => {
 seedExtendedDemoDataIfNeeded();
 initLangSwitch();
 // Backup & Restore buttons
-document.getElementById("btnExportBackup")?.addEventListener("click", downloadBackup);
-document.getElementById("btnImportBackup")?.addEventListener("click", async () => {
-  const inp = document.getElementById("fileImportBackup");
-  const file = inp?.files?.[0];
-  if (!file) { alert("Choose a backup file first"); return; }
-  await importBackupFromFile(file);
-});
+document
+  .getElementById("btnExportBackup")
+  ?.addEventListener("click", downloadBackup);
+document
+  .getElementById("btnImportBackup")
+  ?.addEventListener("click", async () => {
+    const inp = document.getElementById("fileImportBackup");
+    const file = inp?.files?.[0];
+    if (!file) {
+      alert("Choose a backup file first");
+      return;
+    }
+    await importBackupFromFile(file);
+  });
 document.getElementById("btnAddHarvest")?.addEventListener("click", () => {
   onAddHarvest();
   renderStorage();
