@@ -1719,12 +1719,12 @@ function renderPrices() {
     row.innerHTML = `
       <td>${berryLabel(b.id)}</td>
       <td class="right">
-        <input type="text" inputmode="numeric" data-price="${
+        <input type="text" inputmode="text" data-price="${
           b.id
         }|fresh" value="${toShortPYG(prices[b.id].fresh_PYGkg)}">
       </td>
       <td class="right">
-        <input type="text" inputmode="numeric" data-price="${
+        <input type="text" inputmode="text" data-price="${
           b.id
         }|frozen" value="${toShortPYG(prices[b.id].frozen_PYGkg)}">
       </td>`;
