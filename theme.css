@@ -252,6 +252,7 @@ h3 {
 :root {
   --row-h: 34px;
 } /* approx row height */
+
 .table-scroll-10 {
   max-height: calc(var(--row-h) * 10 + 2px);
   overflow: auto;
@@ -259,8 +260,25 @@ h3 {
 
 /* Ensure horizontal scroll is available on small screens */
 .table-scroll-x {
+  display: block;
   overflow-x: auto;
+  overflow-y: hidden; /* y is handled by .table-scroll-10 wrapper */
   -webkit-overflow-scrolling: touch;
+}
+
+/* On very small screens, allow X scroll even without fixed height wrapper */
+.table-compact {
+  width: 100%;
+}
+
+/* Ensure the table can exceed container width for horizontal scroll */
+#harvestTable {
+  min-width: 720px;
+}
+
+/* Sticky header should not clip when scrolled horizontally */
+.table-compact thead th {
+  position: sticky;
 }
 /* Zebra rows and lighter table body in dark mode */
 .table-compact tbody td {

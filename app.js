@@ -1892,17 +1892,19 @@ function renderHarvestTable() {
                     : String(h.picker_pyg || 0)
                 }</td>
                 <td class="right">
-                  <button class="btn" data-del-harvest="${h.id}">${t("ui.delete")}</button>
+                  <button class="btn" data-del-harvest="${h.id}">${t(
+        "ui.delete"
+      )}</button>
                 </td>`;
       tb.appendChild(tr);
     });
 
   // Bind delete buttons (event delegation is fine, but we’ll add listeners here for clarity)
-  tb.querySelectorAll('button[data-del-harvest]')?.forEach((btn) => {
-    btn.addEventListener('click', (e) => {
-      const id = btn.getAttribute('data-del-harvest');
+  tb.querySelectorAll("button[data-del-harvest]")?.forEach((btn) => {
+    btn.addEventListener("click", (e) => {
+      const id = btn.getAttribute("data-del-harvest");
       if (!id) return;
-      if (!confirm(t('ui.confirm_delete'))) return;
+      if (!confirm(t("ui.confirm_delete"))) return;
       const idx = harvests.findIndex((h) => h.id === id);
       if (idx >= 0) {
         harvests.splice(idx, 1);
@@ -1911,7 +1913,13 @@ function renderHarvestTable() {
         recomputeStockPills();
         renderStorage && renderStorage();
         renderRecentActions && renderRecentActions();
-        if (typeof renderAnalytics === 'function') renderAnalytics();
+        if (typeof renderAnalytics === "function") renderAnalytics();
+        // Notify any listeners to recompute metrics/charts
+        try {
+          document.dispatchEvent(
+            new CustomEvent('metrics:updated', { detail: { source: 'harvest-delete' } })
+          );
+        } catch {}
       }
     });
   });
