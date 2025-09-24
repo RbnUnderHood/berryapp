@@ -1917,7 +1917,9 @@ function renderHarvestTable() {
         // Notify any listeners to recompute metrics/charts
         try {
           document.dispatchEvent(
-            new CustomEvent('metrics:updated', { detail: { source: 'harvest-delete' } })
+            new CustomEvent("metrics:updated", {
+              detail: { source: "harvest-delete" },
+            })
           );
         } catch {}
       }
