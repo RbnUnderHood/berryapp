@@ -63,7 +63,8 @@ select {
 .input-with-suffix {
   position: relative;
 }
-.input-with-suffix input[type="number"] {
+.input-with-suffix input[type="number"],
+.input-with-suffix input[type="text"] {
   padding-right: 42px; /* space for suffix */
 }
 .input-with-suffix .input-suffix {
