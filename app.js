@@ -157,6 +157,7 @@ const I18N = {
       berry: "Berry",
       product: "Product",
       weight_g: "Weight (g)",
+      weight_kg: "Weight (kg)",
       picker_pyg: "Picker salary (PYG)",
       add: "Add",
       export: "Export CSV (Harvests)",
@@ -301,6 +302,7 @@ const I18N = {
       berry: "Beere",
       product: "Produkt",
       weight_g: "Gewicht (g)",
+      weight_kg: "Gewicht (kg)",
       picker_pyg: "Pflückerlohn (PYG)",
       add: "Hinzufügen",
       export: "CSV exportieren (Ernten)",
@@ -445,6 +447,7 @@ const I18N = {
       berry: "Beeri",
       product: "Produkt",
       weight_g: "Gwicht (g)",
+      weight_kg: "Gwicht (kg)",
       picker_pyg: "Pflückerloun (PYG)",
       add: "Hinzuefüege",
       export: "CSV exportiere (Ernte)",
@@ -600,6 +603,8 @@ function applyTranslations() {
       fresh.dataset.v || fresh.textContent.match(/([\d.]+)/)?.[1] || "0";
     fresh.textContent = t("pill.fresh", { v });
   }
+  harvests.push(h);
+  save(K.harvests, harvests);
   if (frozen) {
     const v =
       frozen.dataset.v || frozen.textContent.match(/([\d.]+)/)?.[1] || "0";
@@ -1822,7 +1827,9 @@ function recomputeStockPills() {
 function onAddHarvest() {
   const berryId = document.getElementById("harvestBerry").value;
   const dateISO = document.getElementById("harvestDate").value;
-  const weight_g = Number(document.getElementById("harvestWeight").value || 0);
+  // read kilograms with one decimal and convert to grams (round to nearest gram)
+  const weight_kg_input = Number(document.getElementById("harvestWeight").value || 0);
+  const weight_g = Math.round((Number.isFinite(weight_kg_input) ? weight_kg_input : 0) * 1000);
   const picker_pyg = parsePYG(
     document.getElementById("harvestPickerPYG")?.value || 0
   );
