@@ -144,7 +144,11 @@ const I18N = {
       remove: "Remove",
       sold: "Sold",
     },
-    pill: { fresh: "Fresh stock: {v} kg", frozen: "Frozen stock: {v} kg" },
+    pill: {
+      fresh: "Fresh stock: {v} kg",
+      frozen: "Frozen stock: {v} kg",
+      packaged: "Packaged stock: {v} kg",
+    },
     berries: {
       blueberries: "Blueberries",
       mulberries: "Mulberries",
@@ -289,7 +293,11 @@ const I18N = {
       remove: "Entfernen",
       sold: "Verkauft",
     },
-    pill: { fresh: "Frischbestand: {v} kg", frozen: "Tiefkühlbestand: {v} kg" },
+    pill: {
+      fresh: "Frischbestand: {v} kg",
+      frozen: "Tiefkühlbestand: {v} kg",
+      packaged: "Verpacktbestand: {v} kg",
+    },
     berries: {
       blueberries: "Heidelbeeren",
       mulberries: "Maulbeeren",
@@ -434,7 +442,11 @@ const I18N = {
       remove: "Wägneh",
       sold: "Verchouft",
     },
-    pill: { fresh: "Frischbestand: {v} kg", frozen: "Gfrornbestand: {v} kg" },
+    pill: {
+      fresh: "Frischbestand: {v} kg",
+      frozen: "Gfrornbestand: {v} kg",
+      packaged: "Verpacktbestand: {v} kg",
+    },
     berries: {
       blueberries: "Heidelbeeri",
       mulberries: "Maulbeeri",
@@ -598,6 +610,7 @@ function applyTranslations() {
   // Pills with numbers: use data-i18n-aria + current values
   const fresh = document.getElementById("pillFresh");
   const frozen = document.getElementById("pillFrozen");
+  const packaged = document.getElementById("pillPackaged");
   if (fresh) {
     const v =
       fresh.dataset.v || fresh.textContent.match(/([\d.]+)/)?.[1] || "0";
@@ -607,6 +620,11 @@ function applyTranslations() {
     const v =
       frozen.dataset.v || frozen.textContent.match(/([\d.]+)/)?.[1] || "0";
     frozen.textContent = t("pill.frozen", { v });
+  }
+  if (packaged) {
+    const v =
+      packaged.dataset.v || packaged.textContent.match(/([\d.]+)/)?.[1] || "0";
+    packaged.textContent = t("pill.packaged", { v });
   }
 }
 
@@ -931,6 +949,7 @@ function renderMixer() {
   if (!tb) return;
   tb.innerHTML = "";
   const groups = {};
+  // Group packages by product|size|mix signature, tracking total count and total value
   (packages || []).forEach((p) => {
     const sig = `${p.product}|${p.size_g}|${mixSignature(p.mix)}`;
     if (!groups[sig])
@@ -940,20 +959,28 @@ function renderMixer() {
         size_g: p.size_g,
         mix: p.mix,
         count: 0,
-        cost: p.cost_pyg_per_pkg,
+        valueSum: 0,
       };
-    groups[sig].count += p.count || 1;
+    const cnt = Math.max(0, Number(p.count || 0));
+    const cost = Math.max(0, Number(p.cost_pyg_per_pkg || 0));
+    groups[sig].count += cnt;
+    groups[sig].valueSum += cnt * cost;
     if (p.dateISO > groups[sig].dateISO) groups[sig].dateISO = p.dateISO;
   });
-  // apply packaged actions (remove/sold) to reduce available count
+  // Apply packaged actions (remove/sold) to reduce available count and value
   (packActions || []).forEach((a) => {
     const key = `${a.product}|${a.size_g}|${a.mixSig}`;
-    if (!groups[key]) return;
-    const delta = Number(a.count || 0);
+    const g = groups[key];
+    if (!g) return;
+    const delta = Math.max(0, Number(a.count || 0));
     if (!Number.isFinite(delta) || delta <= 0) return;
-    groups[key].count = Math.max(0, (groups[key].count || 0) - delta);
-    // keep latest date
-    if (a.dateISO > groups[key].dateISO) groups[key].dateISO = a.dateISO;
+    const remove = Math.min(delta, g.count || 0);
+    if (remove > 0) {
+      const avgCost = (g.count || 0) > 0 ? g.valueSum / g.count : 0;
+      g.count = Math.max(0, (g.count || 0) - remove);
+      g.valueSum = Math.max(0, g.valueSum - avgCost * remove);
+    }
+    if (a.dateISO > g.dateISO) g.dateISO = a.dateISO; // keep latest date
   });
 
   Object.values(groups)
@@ -964,7 +991,8 @@ function renderMixer() {
         typeof toShortPYG === "function"
           ? toShortPYG
           : (n) => n.toLocaleString();
-      const value = Math.max(0, Math.round((g.count || 0) * (g.cost || 0)));
+      const avgCost = (g.count || 0) > 0 ? g.valueSum / g.count : 0;
+      const value = Math.max(0, Math.round(g.valueSum || 0));
       tr.innerHTML = `
         <td>${
           typeof formatDateEU === "function"
@@ -975,7 +1003,7 @@ function renderMixer() {
         <td>${g.size_g} g</td>
         <td>${mixShortLabel(g.mix)}</td>
         <td class="right">${g.count}</td>
-        <td class="right">${toShort(g.cost)}</td>
+        <td class="right">${toShort(Math.round(avgCost))}</td>
         <td class="right">${toShort(value)}</td>`;
       tb.appendChild(tr);
     });
@@ -1188,6 +1216,7 @@ function renderStorage() {
       typeof t === "function" ? t("pill.fresh", { v }) : `Fresh stock: ${v} kg`;
   }
   const z = document.getElementById("pillFrozen");
+  const pk = document.getElementById("pillPackaged");
   if (z) {
     const v = sumFrozen.toFixed(2);
     z.dataset.v = v;
@@ -1195,6 +1224,35 @@ function renderStorage() {
       typeof t === "function"
         ? t("pill.frozen", { v })
         : `Frozen stock: ${v} kg`;
+  }
+  if (pk) {
+    // recompute packaged each storage render using same logic as recomputeStockPills
+    let packaged_g = 0;
+    const groups = {};
+    (packages || []).forEach((p) => {
+      const sig = `${p.product}|${p.size_g}|${mixSignature(p.mix)}`;
+      if (!groups[sig]) groups[sig] = { p, count: 0 };
+      groups[sig].count += p.count || 0;
+    });
+    (packActions || []).forEach((a) => {
+      const key = `${a.product}|${a.size_g}|${a.mixSig}`;
+      if (groups[key])
+        groups[key].count = Math.max(0, groups[key].count - (a.count || 0));
+    });
+    Object.values(groups).forEach((g) => {
+      const cnt = g.count || 0;
+      if (cnt <= 0) return;
+      const mix = g.p.mix || {};
+      Object.values(mix).forEach((gramsPerBag) => {
+        packaged_g += (gramsPerBag || 0) * cnt;
+      });
+    });
+    const v = (packaged_g / 1000).toFixed(2);
+    pk.dataset.v = v;
+    pk.textContent =
+      typeof t === "function"
+        ? t("pill.packaged", { v })
+        : `Packaged stock: ${v} kg`;
   }
 }
 
@@ -1806,8 +1864,31 @@ function recomputeStockPills() {
     (s, h) => s + (h.frozen_g || 0) / 1000,
     0
   );
+  // packaged kg: sum of (grams per berry in mix * count) / 1000 for remaining packages
+  let packaged_g = 0;
+  const groups = {};
+  (packages || []).forEach((p) => {
+    const sig = `${p.product}|${p.size_g}|${mixSignature(p.mix)}`;
+    if (!groups[sig]) groups[sig] = { p, count: 0 };
+    groups[sig].count += p.count || 0;
+  });
+  (packActions || []).forEach((a) => {
+    const key = `${a.product}|${a.size_g}|${a.mixSig}`;
+    if (groups[key])
+      groups[key].count = Math.max(0, groups[key].count - (a.count || 0));
+  });
+  Object.values(groups).forEach((g) => {
+    const cnt = g.count || 0;
+    if (cnt <= 0) return;
+    const mix = g.p.mix || {};
+    Object.values(mix).forEach((gramsPerBag) => {
+      packaged_g += (gramsPerBag || 0) * cnt;
+    });
+  });
+  const sumPackagedKg = packaged_g / 1000;
   const f = document.getElementById("pillFresh");
   const z = document.getElementById("pillFrozen");
+  const pk = document.getElementById("pillPackaged");
   if (f) {
     const v = sumFreshKg.toFixed(2);
     f.dataset.v = v;
@@ -1821,6 +1902,14 @@ function recomputeStockPills() {
       typeof t === "function"
         ? t("pill.frozen", { v })
         : `Frozen stock: ${v} kg`;
+  }
+  if (pk) {
+    const v = sumPackagedKg.toFixed(2);
+    pk.dataset.v = v;
+    pk.textContent =
+      typeof t === "function"
+        ? t("pill.packaged", { v })
+        : `Packaged stock: ${v} kg`;
   }
 }
 

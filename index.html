@@ -71,6 +71,12 @@
             data-i18n-aria="pill.frozen"
             >Frozen stock: 0 kg</span
           >
+          <span
+            class="pill pill--packaged"
+            id="pillPackaged"
+            data-i18n-aria="pill.packaged"
+            >Packaged stock: 0 kg</span
+          >
         </div>
       </header>
       <div class="row">
@@ -164,7 +170,7 @@
             </button>
           </div>
 
-          <div class="table-scroll-x table-scroll-10">
+          <div class="subcard table-scroll-x table-scroll-10">
             <table
               class="table-compact"
               id="harvestTable"
@@ -306,7 +312,7 @@
           <div class="card-head">
             <h2 id="h2-storage" data-i18n="storage.title">Storage</h2>
           </div>
-          <div class="table-scroll-10">
+          <div class="subcard table-scroll-10">
             <table
               class="table-compact"
               id="storageTable"
@@ -536,7 +542,7 @@
           </div>
 
           <!-- Table -->
-          <div class="table-scroll-10">
+          <div class="subcard table-scroll-10">
             <table class="table-compact" id="salesTable" aria-label="Sales">
               <thead>
                 <tr>
@@ -572,35 +578,39 @@
               <h3 style="margin: 6px 0" data-i18n="sales.sum_by_month">
                 Summary by Month
               </h3>
-              <table class="table-compact" id="salesSumMonth">
-                <thead>
-                  <tr>
-                    <th data-i18n="sales.month">Month</th>
-                    <th class="right" data-i18n="table.kg">Kg</th>
-                    <th class="right" data-i18n="sales.value_pyg">
-                      Value (PYG)
-                    </th>
-                  </tr>
-                </thead>
-                <tbody></tbody>
-              </table>
+              <div class="subcard">
+                <table class="table-compact" id="salesSumMonth">
+                  <thead>
+                    <tr>
+                      <th data-i18n="sales.month">Month</th>
+                      <th class="right" data-i18n="table.kg">Kg</th>
+                      <th class="right" data-i18n="sales.value_pyg">
+                        Value (PYG)
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody></tbody>
+                </table>
+              </div>
             </div>
             <div class="g-6">
               <h3 style="margin: 6px 0" data-i18n="sales.sum_by_berry">
                 Summary by Berry
               </h3>
-              <table class="table-compact" id="salesSumBerry">
-                <thead>
-                  <tr>
-                    <th data-i18n="table.berry">Berry</th>
-                    <th class="right" data-i18n="table.kg">Kg</th>
-                    <th class="right" data-i18n="sales.value_pyg">
-                      Value (PYG)
-                    </th>
-                  </tr>
-                </thead>
-                <tbody></tbody>
-              </table>
+              <div class="subcard">
+                <table class="table-compact" id="salesSumBerry">
+                  <thead>
+                    <tr>
+                      <th data-i18n="table.berry">Berry</th>
+                      <th class="right" data-i18n="table.kg">Kg</th>
+                      <th class="right" data-i18n="sales.value_pyg">
+                        Value (PYG)
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody></tbody>
+                </table>
+              </div>
             </div>
           </div>
 
@@ -740,7 +750,7 @@
             Set current PYG/kg for bulk products. You can type “k” shorthand
             (e.g., 80k). Values round to nearest 5,000.
           </p>
-          <div class="table-scroll-10">
+          <div class="subcard table-scroll-10">
             <table
               class="table-compact"
               id="pricesTable"

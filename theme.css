@@ -386,12 +386,28 @@ h3 {
 .pill--frozen {
   color: var(--accent);
 }
+.pill--packaged {
+  color: var(--warn);
+}
 /* allow long localized words to break inside pill without causing overflow */
 .pill {
   white-space: normal;
   overflow-wrap: anywhere;
   word-break: break-word;
   max-width: 100%;
+}
+
+/* stack pills vertically tighter when more than 2 */
+.header-flex .pill-row {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+}
+@media (min-width: 640px) {
+  .header-flex .pill-row {
+    flex-direction: column;
+    align-items: flex-end;
+  }
 }
 
 /* Language switch alignment */
