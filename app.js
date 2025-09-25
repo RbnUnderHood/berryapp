@@ -964,6 +964,7 @@ function renderMixer() {
         typeof toShortPYG === "function"
           ? toShortPYG
           : (n) => n.toLocaleString();
+      const value = Math.max(0, Math.round((g.count || 0) * (g.cost || 0)));
       tr.innerHTML = `
         <td>${
           typeof formatDateEU === "function"
@@ -974,7 +975,8 @@ function renderMixer() {
         <td>${g.size_g} g</td>
         <td>${mixShortLabel(g.mix)}</td>
         <td class="right">${g.count}</td>
-        <td class="right">${toShort(g.cost)}</td>`;
+        <td class="right">${toShort(g.cost)}</td>
+        <td class="right">${toShort(value)}</td>`;
       tb.appendChild(tr);
     });
 }
