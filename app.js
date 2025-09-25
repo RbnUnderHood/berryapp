@@ -15,14 +15,87 @@ const K = {
   dataVersion: "berry.v1.data_version",
 };
 
+// Safe storage helpers (graceful in restricted/private modes)
+const __storageState = { failed: false };
+function safeGetItem(k) {
+  try {
+    return localStorage.getItem(k);
+  } catch (e) {
+    if (!__storageState.failed) {
+      console.warn(
+        "[berryapp] localStorage get failed – running volatile mode",
+        e
+      );
+      __storageState.failed = true;
+    }
+    return null;
+  }
+}
+function safeSetItem(k, v) {
+  try {
+    localStorage.setItem(k, v);
+  } catch (e) {
+    if (!__storageState.failed) {
+      console.warn(
+        "[berryapp] localStorage set failed – data not persisted",
+        e
+      );
+      __storageState.failed = true;
+      // Show a one-time banner
+      const id = "ls-fail-banner";
+      if (!document.getElementById(id)) {
+        const div = document.createElement("div");
+        div.id = id;
+        div.style.cssText =
+          "position:fixed;z-index:9999;left:50%;top:8px;transform:translateX(-50%);background:#7a1f1f;color:#fff;padding:10px 16px;border:1px solid #c55;border-radius:10px;font:14px system-ui";
+        div.textContent =
+          "Storage disabled: changes won't persist (private mode?)";
+        document.addEventListener("DOMContentLoaded", () =>
+          document.body.appendChild(div)
+        );
+      }
+    }
+  }
+}
 const load = (k, d) => {
   try {
-    return JSON.parse(localStorage.getItem(k)) ?? d;
+    const raw = safeGetItem(k);
+    return raw == null ? d : JSON.parse(raw);
   } catch {
     return d;
   }
 };
-const save = (k, v) => localStorage.setItem(k, JSON.stringify(v));
+const save = (k, v) => safeSetItem(k, JSON.stringify(v));
+
+// Ensure crypto.randomUUID exists (runtime safety even if index.html polyfill skipped)
+if (!(window.crypto && typeof window.crypto.randomUUID === "function")) {
+  if (!window.crypto) window.crypto = {};
+  window.crypto.randomUUID = (function () {
+    function hex(n) {
+      return n.toString(16).padStart(2, "0");
+    }
+    return function () {
+      const a = new Uint8Array(16);
+      if (window.crypto && window.crypto.getRandomValues)
+        window.crypto.getRandomValues(a);
+      else for (let i = 0; i < 16; i++) a[i] = (Math.random() * 256) | 0;
+      a[6] = (a[6] & 0x0f) | 0x40;
+      a[8] = (a[8] & 0x3f) | 0x80;
+      let out = "";
+      for (let i = 0; i < 16; i++)
+        out +=
+          hex(a[i]) + (i === 3 || i === 5 || i === 7 || i === 9 ? "-" : "");
+      return out;
+    };
+  })();
+  console.info("[berryapp] Applied runtime UUID polyfill");
+}
+
+// Debug flag via query/hash (?debug=1 or #debug)
+const BERRY_DEBUG =
+  /[?&#]debug=1/.test(location.search + location.hash) ||
+  /#.*\bdebug\b/.test(location.hash);
+if (BERRY_DEBUG) console.log("[berryapp] Debug mode active");
 
 // ---- Data versioning & backup ----
 // Increment when we change data format; add a migration as needed
@@ -926,6 +999,8 @@ function onCreatePackages() {
   if (typeof renderMixer === "function") renderMixer();
   if (typeof renderRecentActions === "function") renderRecentActions();
   if (typeof renderSales === "function") renderSales();
+  // update top pills (packaged stock included)
+  if (typeof recomputeStockPills === "function") recomputeStockPills();
 }
 function mixSignature(mix) {
   const keys = Object.keys(mix || {}).sort();
@@ -1107,6 +1182,7 @@ function onDoPackAction() {
   renderMixer();
   populatePackageSelect();
   renderRecentActions();
+  if (typeof recomputeStockPills === "function") recomputeStockPills();
 }
 // Compute storage (harvests MINUS bulkActions)
 function computeStorageByBerry() {
@@ -1442,6 +1518,7 @@ function onDoPackActionViaBulk() {
   renderMixer();
   populatePackageSelect();
   renderRecentActions();
+  if (typeof recomputeStockPills === "function") recomputeStockPills();
 }
 const BERRIES = [
   { id: "blueberries" },
@@ -1526,6 +1603,11 @@ if (!prices) {
 // Seed demo data if everything is empty and not seeded before
 function seedDemoDataIfEmpty() {
   try {
+    if (/#no-seed/.test(location.hash)) {
+      if (BERRY_DEBUG)
+        console.log("[berryapp] Skipping base demo seed due to #no-seed flag");
+      return;
+    }
     const already = localStorage.getItem(K.demoSeeded) === "1";
     const noHarvests = !Array.isArray(harvests) || harvests.length === 0;
     const noActions = !Array.isArray(bulkActions) || bulkActions.length === 0;
@@ -1666,6 +1748,13 @@ function seedDemoDataIfEmpty() {
 // Seed extended demo data from mid-2024 if not already seeded
 function seedExtendedDemoDataIfNeeded() {
   try {
+    if (/#no-seed/.test(location.hash)) {
+      if (BERRY_DEBUG)
+        console.log(
+          "[berryapp] Skipping extended demo seed due to #no-seed flag"
+        );
+      return;
+    }
     if (localStorage.getItem(K.demoSeededExt) === "1") return;
     const start = "2024-06-01";
     const today = todayLocalISO();
@@ -1911,6 +2000,31 @@ function recomputeStockPills() {
         ? t("pill.packaged", { v })
         : `Packaged stock: ${v} kg`;
   }
+}
+
+// Helper to compute remaining packaged kilograms (raw berry weight contained)
+function computeRemainingPackagedKg() {
+  let packaged_g = 0;
+  const groups = {};
+  (packages || []).forEach((p) => {
+    const sig = `${p.product}|${p.size_g}|${mixSignature(p.mix)}`;
+    if (!groups[sig]) groups[sig] = { p, count: 0 };
+    groups[sig].count += p.count || 0;
+  });
+  (packActions || []).forEach((a) => {
+    const key = `${a.product}|${a.size_g}|${a.mixSig}`;
+    if (groups[key])
+      groups[key].count = Math.max(0, groups[key].count - (a.count || 0));
+  });
+  Object.values(groups).forEach((g) => {
+    const cnt = g.count || 0;
+    if (cnt <= 0) return;
+    const mix = g.p.mix || {};
+    for (const gramsPerBag of Object.values(mix)) {
+      packaged_g += (gramsPerBag || 0) * cnt;
+    }
+  });
+  return packaged_g / 1000; // kg
 }
 
 function onAddHarvest() {

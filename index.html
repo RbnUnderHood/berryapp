@@ -16,7 +16,75 @@
       })();
     </script>
     <link rel="stylesheet" href="theme.css" />
-    <script src="app.js" defer></script>
+    <!-- Compatibility + conditional loader -->
+    <script>
+      (function () {
+        function featureCheck() {
+          try {
+            // Test optional chaining + nullish coalescing
+            // eslint-disable-next-line no-new-func
+            var r = new Function("return ({a:{b:1}})?.a?.b ?? 2;")();
+            return r === 1 || r === 2; // any successful eval means syntax supported
+          } catch (e) {
+            return false;
+          }
+        }
+        function insertLegacyMessage() {
+          var style =
+            "font:16px system-ui;padding:20px;max-width:760px;margin:48px auto;color:#fff;background:#5a1f1f;border:1px solid #c66;border-radius:14px;line-height:1.5;";
+          var wrap = document.createElement("div");
+          wrap.setAttribute("role", "alert");
+          wrap.style.cssText = style;
+          wrap.innerHTML =
+            '<h2 style="margin:0 0 12px;font:600 20px system-ui">Browser Not Supported<\/h2>' +
+            "<p>This browser version is missing modern JavaScript features required by the Berry App (optional chaining / nullish coalescing). Please update to a recent Chrome, Edge, Firefox, or Safari (14+).<\/p>" +
+            '<p style="font-size:14px;opacity:.8">Error code: <code>ERR-LEGACY-01<\/code>. If updating is impossible, contact the maintainer.<\/p>';
+          document.addEventListener("DOMContentLoaded", function () {
+            document.body.innerHTML = "";
+            document.body.appendChild(wrap);
+          });
+        }
+        if (!featureCheck()) {
+          insertLegacyMessage();
+          return;
+        }
+        // Early uuid polyfill (in case main script assumes it)
+        if (!window.crypto) window.crypto = {};
+        if (typeof window.crypto.randomUUID !== "function") {
+          window.crypto.randomUUID = (function () {
+            function hex(n) {
+              return n.toString(16).padStart(2, "0");
+            }
+            return function () {
+              var a = new Uint8Array(16);
+              if (window.crypto && window.crypto.getRandomValues)
+                window.crypto.getRandomValues(a);
+              else
+                for (var i = 0; i < 16; i++) a[i] = (Math.random() * 256) | 0;
+              a[6] = (a[6] & 0x0f) | 0x40; // version 4
+              a[8] = (a[8] & 0x3f) | 0x80; // variant
+              var out = "";
+              for (var i = 0; i < 16; i++)
+                out +=
+                  hex(a[i]) +
+                  (i === 3 || i === 5 || i === 7 || i === 9 ? "-" : "");
+              return out;
+            };
+          })();
+        }
+        // Expose debug feature flags if requested
+        var dbg =
+          /[?#&](debug=1)/i.test(location.search) ||
+          /#.*\bdebug\b/i.test(location.hash);
+        if (dbg) {
+          console.log("[berryapp] compatibility OK, loading app.js");
+        }
+        var s = document.createElement("script");
+        s.src = "app.js";
+        s.defer = true;
+        document.head.appendChild(s);
+      })();
+    </script>
     <title>Berry Tally</title>
   </head>
   <body>
