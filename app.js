@@ -603,8 +603,6 @@ function applyTranslations() {
       fresh.dataset.v || fresh.textContent.match(/([\d.]+)/)?.[1] || "0";
     fresh.textContent = t("pill.fresh", { v });
   }
-  harvests.push(h);
-  save(K.harvests, harvests);
   if (frozen) {
     const v =
       frozen.dataset.v || frozen.textContent.match(/([\d.]+)/)?.[1] || "0";
